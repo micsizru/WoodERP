@@ -1,0 +1,13 @@
+{
+    "python.defaultInterpreterPath": "C:/Users/abdul/AppData/Local/Python/pythoncore-3.14-64/python.exe",
+    "python.analysis.extraPaths": [
+        "C:/Users/abdul/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages"
+    ],
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportMissingModuleSource": "none"
+    },
+    "python.locator": "native",
+    "python.experiments.enabled": false
+}

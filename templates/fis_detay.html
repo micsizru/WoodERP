@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- ─── Page Header ─── -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h2><i class="bi bi-receipt me-2"></i>Fiş Detayı #{{ fis.id }}</h2>
+    <div>
+        <a href="{{ url_for('fisleri_goruntule') }}" class="btn btn-ma-outline">
+            <i class="bi bi-arrow-left me-1"></i> Geri
+        </a>
+        <a href="{{ url_for('fis_sil', fis_id=fis.id) }}" class="btn btn-ma-danger ms-1"
+           onclick="return confirm('Bu fişi silmek istediğinize emin misiniz?');">
+            <i class="bi bi-trash3-fill me-1"></i> Sil
+        </a>
+    </div>
+</div>
+
+<!-- ─── Fiş Üst Bilgileri ─── -->
+<div class="form-section">
+    <div class="form-section-title"><i class="bi bi-truck me-2"></i>Kamyon / Fiş Bilgileri</div>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label">Tarih</div>
+            <div class="detail-value">{{ fis.tarih.strftime('%d.%m.%Y') }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Sevk Eden Cari</div>
+            <div class="detail-value">{{ fis.sevk_eden_cari }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Sevk Yeri / Fabrika</div>
+            <div class="detail-value">{{ fis.sevk_yeri_fabrika }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Sevkiyat Fiş No</div>
+            <div class="detail-value">{{ fis.sevk_yeri_fis_no }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Plaka No</div>
+            <div class="detail-value">{{ fis.plaka_no }}</div>
+        </div>
+        <div class="detail-item" style="background: rgba(27,94,32,0.07);">
+            <div class="detail-label">Genel Toplam</div>
+            <div class="detail-value text-success">₺ {{ '{:,.2f}'.format(genel_toplam) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Kalem Detayları ─── -->
+<div class="form-section">
+    <div class="form-section-title"><i class="bi bi-list-check me-2"></i>Kalem Satırları ({{ fis.detaylar | length }})</div>
+    <div class="table-responsive">
+        <table class="table table-ma table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Ağaç Cinsi</th>
+                    <th>Çap</th>
+                    <th>Miktar</th>
+                    <th>Birim</th>
+                    <th>Birim Fiyat</th>
+                    <th>Toplam Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in fis.detaylar %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ d.agac_cinsi }}</td>
+                    <td>{{ d.cap }}</td>
+                    <td>{{ d.miktar }}</td>
+                    <td>{{ d.birim }}</td>
+                    <td>₺ {{ '{:,.2f}'.format(d.birim_fiyat) }}</td>
+                    <td><strong>₺ {{ '{:,.2f}'.format(d.toplam_tutar) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: rgba(27,94,32,0.06);">
+                    <td colspan="6" class="text-end fw-bold">Genel Toplam:</td>
+                    <td class="fw-bold text-success fs-5">₺ {{ '{:,.2f}'.format(genel_toplam) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

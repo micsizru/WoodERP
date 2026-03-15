@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- ─── Page Header ─── -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h2><i class="bi bi-list-ul me-2"></i>Fişleri Görüntüle</h2>
+    <a href="{{ url_for('yeni_fis_formu') }}" class="btn btn-ma-primary">
+        <i class="bi bi-plus-lg me-1"></i> Yeni Fiş
+    </a>
+</div>
+
+{% if fisler %}
+<div class="table-responsive">
+    <table class="table table-ma table-hover mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Tarih</th>
+                <th>Sevk Eden Cari</th>
+                <th>Fabrika</th>
+                <th>Plaka No</th>
+                <th>Kalem</th>
+                <th class="text-center">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fis in fisler %}
+            <tr>
+                <td><strong>{{ fis.id }}</strong></td>
+                <td>{{ fis.tarih.strftime('%d.%m.%Y') }}</td>
+                <td>{{ fis.sevk_eden_cari }}</td>
+                <td>{{ fis.sevk_yeri_fabrika }}</td>
+                <td>{{ fis.plaka_no }}</td>
+                <td>
+                    <span class="badge rounded-pill" style="background:var(--ma-primary);">
+                        {{ fis.detaylar | length }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-sm btn-ma-accent me-1">
+                        <i class="bi bi-eye-fill"></i> Detay
+                    </a>
+                    <a href="{{ url_for('fis_sil', fis_id=fis.id) }}"
+                       class="btn btn-sm btn-ma-danger"
+                       onclick="return confirm('Bu fişi silmek istediğinize emin misiniz?');">
+                        <i class="bi bi-trash3-fill"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <div style="font-size:4rem; margin-bottom:1rem;">📭</div>
+    <h4 class="text-muted">Henüz kayıtlı fiş bulunmuyor</h4>
+    <p class="text-muted">İlk fişinizi oluşturmak için aşağıdaki butona tıklayın.</p>
+    <a href="{{ url_for('yeni_fis_formu') }}" class="btn btn-ma-primary btn-lg mt-2">
+        <i class="bi bi-plus-circle-fill me-1"></i> Yeni Fiş Oluştur
+    </a>
+</div>
+{% endif %}
+{% endblock %}

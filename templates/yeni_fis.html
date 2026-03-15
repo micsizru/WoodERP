@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- ─── Page Header ─── -->
+<div class="page-header">
+    <h2><i class="bi bi-plus-circle-fill me-2"></i>Yeni Fiş Oluştur</h2>
+</div>
+
+<!-- ─── Üst Bilgi Formu ─── -->
+<div class="form-section">
+    <div class="form-section-title"><i class="bi bi-truck me-2"></i>Kamyon / Fiş Bilgileri</div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label for="tarih" class="form-label">Tarih</label>
+            <input type="date" class="form-control" id="tarih" value="{{ bugun }}" required>
+        </div>
+        <div class="col-md-4">
+            <label for="sevk_eden_cari" class="form-label">Sevk Eden Cari</label>
+            <input type="text" class="form-control" id="sevk_eden_cari" placeholder="Cari adı..." required>
+        </div>
+        <div class="col-md-4">
+            <label for="plaka_no" class="form-label">Plaka No</label>
+            <input type="text" class="form-control" id="plaka_no" placeholder="34 ABC 123" required>
+        </div>
+        <div class="col-md-6">
+            <label for="sevk_yeri_fabrika" class="form-label">Sevk Yeri / Fabrika</label>
+            <input type="text" class="form-control" id="sevk_yeri_fabrika" placeholder="Fabrika adı..." required>
+        </div>
+        <div class="col-md-6">
+            <label for="sevk_yeri_fis_no" class="form-label">Sevk Yeri Fiş No</label>
+            <input type="text" class="form-control" id="sevk_yeri_fis_no" placeholder="Fiş numarası..." required>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Detay Satırları ─── -->
+<div class="form-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="form-section-title mb-0 border-0 pb-0"><i class="bi bi-list-check me-2"></i>Kalem Satırları</div>
+        <button type="button" class="btn btn-ma-primary" id="btnKalemEkle" onclick="kalemEkle()">
+            <i class="bi bi-plus-lg me-1"></i> Kalem Ekle
+        </button>
+    </div>
+    <div id="kalemlerContainer">
+        <!-- Dinamik satırlar buraya eklenir -->
+    </div>
+    <div id="kalemUyari" class="text-muted text-center py-3" style="display:block;">
+        <i class="bi bi-info-circle me-1"></i> "Kalem Ekle" butonuna tıklayarak ağaç cinsi ve ölçü satırları ekleyin.
+    </div>
+</div>
+
+<!-- ─── Submit ─── -->
+<div class="d-grid gap-2 mb-4">
+    <button type="button" class="btn btn-ma-primary btn-lg" id="btnKaydet" onclick="fisKaydet()">
+        <i class="bi bi-check-circle-fill me-1"></i> Fişi Kaydet
+    </button>
+</div>
+
+<!-- ─── Sonuç Modalı ─── -->
+<div class="modal fade" id="sonucModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px; overflow:hidden;">
+            <div class="modal-header" id="sonucModalHeader">
+                <h5 class="modal-title" id="sonucModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div id="sonucModalIcon" style="font-size:3rem; margin-bottom:0.75rem;"></div>
+                <p id="sonucModalMesaj" class="mb-0 fs-5"></p>
+            </div>
+            <div class="modal-footer justify-content-center" id="sonucModalFooter">
+                <a href="{{ url_for('fisleri_goruntule') }}" class="btn btn-ma-accent">
+                    <i class="bi bi-list-ul me-1"></i> Fişlere Git
+                </a>
+                <button type="button" class="btn btn-ma-outline" data-bs-dismiss="modal" onclick="formuSifirla()">
+                    <i class="bi bi-plus-lg me-1"></i> Yeni Fiş
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ─── Dropdown verileri (Jinja'dan) ───
+    const agacCinsleri = {{ agac_cinsleri | tojson }};
+    const capler = {{ capler | tojson }};
+    const birimler = {{ birimler | tojson }};
+
+    let kalemSayaci = 0;
+
+    // ─── Dropdown option builder ───
+    function optionlarOlustur(dizi, secilen) {
+        return dizi.map(item =>
+            `<option value="${item}" ${item === secilen ? 'selected' : ''}>${item}</option>`
+        ).join('');
+    }
+
+    // ─── Kalem Satırı Ekle ───
+    function kalemEkle() {
+        kalemSayaci++;
+        const container = document.getElementById('kalemlerContainer');
+        document.getElementById('kalemUyari').style.display = 'none';
+
+        const div = document.createElement('div');
+        div.className = 'kalem-satiri';
+        div.id = `kalem-${kalemSayaci}`;
+        div.innerHTML = `
+            <span class="kalem-no">Kalem ${kalemSayaci}</span>
+            <button type="button" class="btn-sil-kalem" onclick="kalemSil(${kalemSayaci})">
+                <i class="bi bi-x-lg"></i> Sil
+            </button>
+            <div class="row g-2 mt-1">
+                <div class="col-6 col-md-3">
+                    <label class="form-label">Ağaç Cinsi</label>
+                    <select class="form-select kalem-agac">${optionlarOlustur(agacCinsleri)}</select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Çap</label>
+                    <select class="form-select kalem-cap">${optionlarOlustur(capler)}</select>
+                </div>
+                <div class="col-4 col-md-2">
+                    <label class="form-label">Miktar</label>
+                    <input type="number" class="form-control kalem-miktar" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="col-4 col-md-2">
+                    <label class="form-label">Birim</label>
+                    <select class="form-select kalem-birim">${optionlarOlustur(birimler)}</select>
+                </div>
+                <div class="col-4 col-md-3">
+                    <label class="form-label">Birim Fiyat (₺)</label>
+                    <input type="number" class="form-control kalem-birim-fiyat" step="0.01" min="0" placeholder="0.00">
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    // ─── Kalem Satırı Sil ───
+    function kalemSil(no) {
+        const el = document.getElementById(`kalem-${no}`);
+        if (el) el.remove();
+        // Kalan kalem var mı kontrol et
+        if (document.querySelectorAll('.kalem-satiri').length === 0) {
+            document.getElementById('kalemUyari').style.display = 'block';
+        }
+    }
+
+    // ─── Formu Sıfırla ───
+    function formuSifirla() {
+        document.getElementById('sevk_eden_cari').value = '';
+        document.getElementById('plaka_no').value = '';
+        document.getElementById('sevk_yeri_fabrika').value = '';
+        document.getElementById('sevk_yeri_fis_no').value = '';
+        document.getElementById('kalemlerContainer').innerHTML = '';
+        document.getElementById('kalemUyari').style.display = 'block';
+        kalemSayaci = 0;
+    }
+
+    // ─── Modal Göster ───
+    function modalGoster(basarili, mesaj) {
+        const modal = new bootstrap.Modal(document.getElementById('sonucModal'));
+        const header = document.getElementById('sonucModalHeader');
+        const icon = document.getElementById('sonucModalIcon');
+        const title = document.getElementById('sonucModalTitle');
+        const msg = document.getElementById('sonucModalMesaj');
+        const footer = document.getElementById('sonucModalFooter');
+
+        if (basarili) {
+            header.style.background = 'var(--ma-gradient)';
+            header.style.color = '#fff';
+            icon.textContent = '✅';
+            title.textContent = 'Başarılı!';
+            footer.style.display = '';
+        } else {
+            header.style.background = 'var(--ma-danger)';
+            header.style.color = '#fff';
+            icon.textContent = '❌';
+            title.textContent = 'Hata!';
+            footer.style.display = 'none';
+        }
+        msg.textContent = mesaj;
+        modal.show();
+    }
+
+    // ─── Fiş Kaydet ───
+    function fisKaydet() {
+        // Üst bilgi doğrulama
+        const tarih = document.getElementById('tarih').value;
+        const sevkEdenCari = document.getElementById('sevk_eden_cari').value.trim();
+        const plaka = document.getElementById('plaka_no').value.trim();
+        const fabrika = document.getElementById('sevk_yeri_fabrika').value.trim();
+        const fisNo = document.getElementById('sevk_yeri_fis_no').value.trim();
+
+        if (!tarih || !sevkEdenCari || !plaka || !fabrika || !fisNo) {
+            modalGoster(false, 'Lütfen tüm kamyon/fiş bilgilerini doldurun.');
+            return;
+        }
+
+        // Kalem satırlarını topla
+        const kalemDivler = document.querySelectorAll('.kalem-satiri');
+        if (kalemDivler.length === 0) {
+            modalGoster(false, 'En az bir kalem satırı eklemelisiniz.');
+            return;
+        }
+
+        const kalemler = [];
+        let gecerli = true;
+
+        kalemDivler.forEach((div) => {
+            const agac = div.querySelector('.kalem-agac').value;
+            const cap = div.querySelector('.kalem-cap').value;
+            const miktar = parseFloat(div.querySelector('.kalem-miktar').value);
+            const birim = div.querySelector('.kalem-birim').value;
+            const birimFiyat = parseFloat(div.querySelector('.kalem-birim-fiyat').value);
+
+            if (isNaN(miktar) || miktar <= 0 || isNaN(birimFiyat) || birimFiyat < 0) {
+                gecerli = false;
+                return;
+            }
+
+            kalemler.push({
+                agac_cinsi: agac,
+                cap: cap,
+                miktar: miktar,
+                birim: birim,
+                birim_fiyat: birimFiyat,
+            });
+        });
+
+        if (!gecerli || kalemler.length === 0) {
+            modalGoster(false, 'Lütfen tüm kalem satırlarında miktar ve birim fiyat değerlerini doğru girin.');
+            return;
+        }
+
+        // Gönder
+        const btnKaydet = document.getElementById('btnKaydet');
+        btnKaydet.disabled = true;
+        btnKaydet.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
+
+        const veri = {
+            tarih: tarih,
+            sevk_eden_cari: sevkEdenCari,
+            sevk_yeri_fabrika: fabrika,
+            sevk_yeri_fis_no: fisNo,
+            plaka_no: plaka,
+            kalemler: kalemler,
+        };
+
+        fetch("{{ url_for('yeni_fis_kaydet') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(veri),
+        })
+        .then(res => res.json())
+        .then(data => {
+            btnKaydet.disabled = false;
+            btnKaydet.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Fişi Kaydet';
+
+            if (data.durum === 'basarili') {
+                modalGoster(true, data.mesaj);
+            } else {
+                modalGoster(false, data.mesaj || 'Bilinmeyen bir hata oluştu.');
+            }
+        })
+        .catch(err => {
+            btnKaydet.disabled = false;
+            btnKaydet.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Fişi Kaydet';
+            modalGoster(false, 'Sunucu ile bağlantı kurulamadı: ' + err.message);
+        });
+    }
+
+    // İlk açılışta bir kalem satırı otomatik ekle
+    kalemEkle();
+</script>
+{% endblock %}

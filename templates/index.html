@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- ─── Page Header ─── -->
+<div class="page-header text-center">
+    <h2><i class="bi bi-speedometer2 me-2"></i>Sevkiyat Yönetim Paneli</h2>
+</div>
+
+<!-- ─── Statistics Row ─── -->
+<div class="row g-4 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon mx-auto" style="background: rgba(27, 94, 32, 0.1); color: var(--ma-primary);">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+                <div class="stat-value text-success">{{ toplam_fis }}</div>
+                <div class="stat-label">Toplam Fiş</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon mx-auto" style="background: rgba(121, 85, 72, 0.1); color: var(--ma-accent);">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-value" style="color: var(--ma-accent);">{{ toplam_kalem }}</div>
+                <div class="stat-label">Toplam Kalem</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Quick Actions ─── -->
+<h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı İşlemler</h5>
+<div class="row g-4">
+    <div class="col-12 col-md-4">
+        <a href="{{ url_for('yeni_fis_formu') }}" class="action-card card action-card-green h-100">
+            <div class="card-body">
+                <span class="action-icon">📝</span>
+                <div class="action-title">Yeni Fiş Oluştur</div>
+                <p class="action-desc">Yeni bir sevkiyat fişi girin</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a href="{{ url_for('fisleri_goruntule') }}" class="action-card card action-card-brown h-100">
+            <div class="card-body">
+                <span class="action-icon">📋</span>
+                <div class="action-title">Fişleri Görüntüle</div>
+                <p class="action-desc">Geçmiş fişleri inceleyin</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a href="{{ url_for('rapor_indir') }}" class="action-card card action-card-teal h-100">
+            <div class="card-body">
+                <span class="action-icon">📊</span>
+                <div class="action-title">Excel Raporu İndir</div>
+                <p class="action-desc">Tüm verileri Excel'e aktarın</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

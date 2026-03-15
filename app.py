@@ -1,7 +1,9 @@
 import os
 import io
-from datetime import datetime, date
+import calendar
+from datetime import datetime, date, timedelta
 
+from dateutil.relativedelta import relativedelta
 from flask import (
     Flask, render_template, request, redirect,
     url_for, flash, jsonify, send_file
@@ -60,23 +62,92 @@ class FisDetayi(db.Model):
 # ───────────────────────── Sabit Dropdown Verileri ─────────────────────────
 
 AGAC_CINSLERI = [
-    "kayın odun",
-    "çam odun",
-    "çam odun (yanık saha)",
-    "meşe odun",
-    "kavak odun",
-    "orman kavağı",
-    "kestane odun",
-    "çınar odun",
-    "söğüt.kib.göb.selvi kavak",
-    "kızılağaç-akasya",
-    "ıhlamur",
-    "diş budak",
+    "Kayın Odun",
+    "Çam Odun",
+    "Çam Odun (Yanık Saha)",
+    "Meşe Odun",
+    "Kavak Odun",
+    "Orman Kavağı",
+    "Kestane Odun",
+    "Çınar Odun",
+    "Söğüt.Kib.Göb.Selvi Kavak",
+    "Kızılağaç-Akasya",
+    "Ihlamur",
+    "Diş Budak",
 ]
 
 CAPLER = ["6cm altı", "6-15cm arası", "15 üstü"]
 
 BIRIMLER = ["Ton", "Ster", "m³", "Kg"]
+
+TURKCE_AYLAR = [
+    "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+]
+
+
+def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
+    """Filtre parametresine göre (başlangıç, bitiş) tarih çifti döndürür."""
+    bugun = date.today()
+
+    if filtre == "bugun":
+        return bugun, bugun
+
+    elif filtre == "son_3_gun":
+        return bugun - timedelta(days=2), bugun
+
+    elif filtre == "son_hafta":
+        return bugun - timedelta(days=6), bugun
+
+    elif filtre == "bu_hafta":
+        pazartesi = bugun - timedelta(days=bugun.weekday())
+        return pazartesi, bugun
+
+    elif filtre == "onceki_hafta":
+        bu_pazartesi = bugun - timedelta(days=bugun.weekday())
+        onceki_pazartesi = bu_pazartesi - timedelta(days=7)
+        onceki_pazar = bu_pazartesi - timedelta(days=1)
+        return onceki_pazartesi, onceki_pazar
+
+    elif filtre == "son_ay":
+        bir_ay_once = bugun - relativedelta(months=1)
+        return bir_ay_once, bugun
+
+    elif filtre and filtre.startswith("yil_"):
+        yil = int(filtre.split("_")[1])
+        return date(yil, 1, 1), date(yil, 12, 31)
+
+    elif filtre and filtre.startswith("ay_"):
+        parcalar = filtre.split("_")  # ay_2026_03
+        yil, ay = int(parcalar[1]), int(parcalar[2])
+        son_gun = calendar.monthrange(yil, ay)[1]
+        return date(yil, ay, 1), date(yil, ay, son_gun)
+
+    elif filtre and filtre.startswith("hafta_"):
+        parcalar = filtre.split("_")  # hafta_2026_03_1
+        yil, ay, hafta_no = int(parcalar[1]), int(parcalar[2]), int(parcalar[3])
+        # Ayın ilk gününün pazartesisini bul
+        ayin_ilk_gunu = date(yil, ay, 1)
+        ilk_pazartesi_offset = (7 - ayin_ilk_gunu.weekday()) % 7
+        if ayin_ilk_gunu.weekday() == 0:  # Zaten pazartesi
+            ilk_pazartesi = ayin_ilk_gunu
+        else:
+            ilk_pazartesi = ayin_ilk_gunu + timedelta(days=ilk_pazartesi_offset)
+        hafta_baslangic = ilk_pazartesi + timedelta(weeks=hafta_no - 1)
+        hafta_bitis = hafta_baslangic + timedelta(days=6)
+        # Ayın son gününü aşmasın
+        son_gun = calendar.monthrange(yil, ay)[1]
+        ayin_sonu = date(yil, ay, son_gun)
+        hafta_bitis = min(hafta_bitis, ayin_sonu)
+        return hafta_baslangic, hafta_bitis
+
+    elif filtre == "ozel" and baslangic_str and bitis_str:
+        baslangic = datetime.strptime(baslangic_str, "%Y-%m-%d").date()
+        bitis = datetime.strptime(bitis_str, "%Y-%m-%d").date()
+        return baslangic, bitis
+
+    # Filtre yok veya geçersiz → tüm veriler
+    return None, None
 
 
 # ───────────────────────── Route'lar ─────────────────────────
@@ -176,10 +247,33 @@ def fis_sil(fis_id):
     return redirect(url_for("fisleri_goruntule"))
 
 
+@app.route("/raporlar")
+def raporlar():
+    """Rapor filtreleme sayfası."""
+    bugun = date.today()
+    # Veritabanındaki en eski yılı bul
+    en_eski = db.session.query(db.func.min(Fis.tarih)).scalar()
+    en_eski_yil = en_eski.year if en_eski else bugun.year
+    yillar = list(range(bugun.year, en_eski_yil - 1, -1))
+
+    return render_template(
+        "raporlar.html",
+        bugun=bugun.isoformat(),
+        yillar=yillar,
+        aylar=TURKCE_AYLAR,
+    )
+
+
 @app.route("/rapor_indir")
 def rapor_indir():
-    """Pandas ile JOIN yapıp Excel dosyası oluşturur ve indirir."""
-    query = (
+    """Pandas ile JOIN yapıp filtrelenmiş Excel dosyası oluşturur ve indirir."""
+    filtre = request.args.get("filtre", "")
+    baslangic_str = request.args.get("baslangic", "")
+    bitis_str = request.args.get("bitis", "")
+
+    baslangic, bitis = tarih_araligi_hesapla(filtre, baslangic_str, bitis_str)
+
+    sorgu = (
         db.session.query(
             Fis.id.label("Fiş No"),
             Fis.tarih.label("Tarih"),
@@ -195,11 +289,15 @@ def rapor_indir():
             FisDetayi.toplam_tutar.label("Toplam Tutar"),
         )
         .join(FisDetayi, Fis.id == FisDetayi.fis_id)
-        .order_by(Fis.tarih.desc(), Fis.id.desc())
-        .all()
     )
 
-    df = pd.DataFrame(query, columns=[
+    # Tarih filtresini uygula
+    if baslangic and bitis:
+        sorgu = sorgu.filter(Fis.tarih >= baslangic, Fis.tarih <= bitis)
+
+    sonuclar = sorgu.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
+
+    df = pd.DataFrame(sonuclar, columns=[
         "Fiş No", "Tarih", "Sevk Eden Cari", "Fabrika",
         "Sevkiyat Fiş No", "Plaka No", "Ağaç Cinsi", "Çap",
         "Miktar", "Birim", "Birim Fiyat", "Toplam Tutar",
@@ -210,8 +308,12 @@ def rapor_indir():
         df.to_excel(writer, index=False, sheet_name="Sevkiyat Raporu")
     output.seek(0)
 
-    tarih_str = datetime.now().strftime("%Y-%m-%d")
-    dosya_adi = f"Marmara_Aydoganlar_Rapor_{tarih_str}.xlsx"
+    # Dosya adını tarih aralığına göre oluştur
+    if baslangic and bitis:
+        dosya_adi = f"Marmara_Aydoganlar_Rapor_{baslangic}_{bitis}.xlsx"
+    else:
+        tarih_str = datetime.now().strftime("%Y-%m-%d")
+        dosya_adi = f"Marmara_Aydoganlar_Rapor_Tumu_{tarih_str}.xlsx"
 
     return send_file(
         output,

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- ─── Page Header ─── -->
+<div class="page-header text-center">
+    <h2><i class="bi bi-bar-chart-line-fill me-2"></i>Rapor Sorgulama</h2>
+</div>
+
+<!-- ─── Hızlı Filtreler ─── -->
+<div class="form-section mb-4">
+    <div class="form-section-title"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı Filtreler</div>
+    <div class="rapor-hizli-grid">
+        <a href="{{ url_for('rapor_indir', filtre='bugun') }}" class="rapor-hizli-btn" id="btn-bugun">
+            <i class="bi bi-calendar-day"></i> Bugün
+        </a>
+        <a href="{{ url_for('rapor_indir', filtre='son_3_gun') }}" class="rapor-hizli-btn" id="btn-son3gun">
+            <i class="bi bi-calendar3"></i> Son 3 Gün
+        </a>
+        <a href="{{ url_for('rapor_indir', filtre='son_hafta') }}" class="rapor-hizli-btn" id="btn-sonhafta">
+            <i class="bi bi-calendar-week"></i> Son Hafta
+        </a>
+        <a href="{{ url_for('rapor_indir', filtre='bu_hafta') }}" class="rapor-hizli-btn" id="btn-buhafta">
+            <i class="bi bi-calendar2-week"></i> Bu Hafta
+        </a>
+        <a href="{{ url_for('rapor_indir', filtre='onceki_hafta') }}" class="rapor-hizli-btn" id="btn-oncekihafta">
+            <i class="bi bi-calendar2-minus"></i> Önceki Hafta
+        </a>
+        <a href="{{ url_for('rapor_indir', filtre='son_ay') }}" class="rapor-hizli-btn" id="btn-sonay">
+            <i class="bi bi-calendar-month"></i> Son Ay
+        </a>
+        <a href="{{ url_for('rapor_indir') }}" class="rapor-hizli-btn rapor-hizli-btn-tumu" id="btn-tumu">
+            <i class="bi bi-cloud-download"></i> Tümünü İndir
+        </a>
+    </div>
+</div>
+
+<!-- ─── Detaylı Sorgulama ─── -->
+<div class="form-section mb-4">
+    <div class="form-section-title"><i class="bi bi-search me-1"></i>Detaylı Sorgulama</div>
+
+    <div class="row g-3">
+        <!-- Yıl Raporu -->
+        <div class="col-12 col-md-6">
+            <div class="rapor-detay-card" id="card-yil">
+                <div class="rapor-detay-baslik"><i class="bi bi-calendar-range me-1"></i>Yıl Raporu</div>
+                <div class="d-flex gap-2 align-items-end">
+                    <div class="flex-grow-1">
+                        <label class="form-label" for="select-yil">Yıl</label>
+                        <select class="form-select" id="select-yil">
+                            {% for yil in yillar %}
+                            <option value="{{ yil }}">{{ yil }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-yil" onclick="raporIndir('yil')">
+                        <i class="bi bi-download me-1"></i>İndir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ay Raporu -->
+        <div class="col-12 col-md-6">
+            <div class="rapor-detay-card" id="card-ay">
+                <div class="rapor-detay-baslik"><i class="bi bi-calendar-month me-1"></i>Ay Raporu</div>
+                <div class="d-flex gap-2 align-items-end">
+                    <div>
+                        <label class="form-label" for="select-ay-yil">Yıl</label>
+                        <select class="form-select" id="select-ay-yil">
+                            {% for yil in yillar %}
+                            <option value="{{ yil }}">{{ yil }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex-grow-1">
+                        <label class="form-label" for="select-ay">Ay</label>
+                        <select class="form-select" id="select-ay">
+                            {% for i in range(1, 13) %}
+                            <option value="{{ i }}">{{ aylar[i] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-ay" onclick="raporIndir('ay')">
+                        <i class="bi bi-download me-1"></i>İndir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hafta Raporu -->
+        <div class="col-12 col-md-6">
+            <div class="rapor-detay-card" id="card-hafta">
+                <div class="rapor-detay-baslik"><i class="bi bi-calendar-week me-1"></i>Hafta Raporu</div>
+                <div class="d-flex gap-2 align-items-end flex-wrap">
+                    <div>
+                        <label class="form-label" for="select-hafta-yil">Yıl</label>
+                        <select class="form-select" id="select-hafta-yil" onchange="haftalariGuncelle()">
+                            {% for yil in yillar %}
+                            <option value="{{ yil }}">{{ yil }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="select-hafta-ay">Ay</label>
+                        <select class="form-select" id="select-hafta-ay" onchange="haftalariGuncelle()">
+                            {% for i in range(1, 13) %}
+                            <option value="{{ i }}">{{ aylar[i] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="select-hafta-no">Hafta</label>
+                        <select class="form-select" id="select-hafta-no">
+                            <!-- JS ile doldurulacak -->
+                        </select>
+                    </div>
+                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-hafta" onclick="raporIndir('hafta')">
+                        <i class="bi bi-download me-1"></i>İndir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarih Aralığı -->
+        <div class="col-12 col-md-6">
+            <div class="rapor-detay-card" id="card-ozel">
+                <div class="rapor-detay-baslik"><i class="bi bi-calendar2-range me-1"></i>Tarih Aralığı</div>
+                <div class="d-flex gap-2 align-items-end flex-wrap">
+                    <div class="flex-grow-1">
+                        <label class="form-label" for="input-baslangic">Başlangıç</label>
+                        <input type="date" class="form-control" id="input-baslangic" value="{{ bugun }}">
+                    </div>
+                    <div class="flex-grow-1">
+                        <label class="form-label" for="input-bitis">Bitiş</label>
+                        <input type="date" class="form-control" id="input-bitis" value="{{ bugun }}">
+                    </div>
+                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-ozel" onclick="raporIndir('ozel')">
+                        <i class="bi bi-download me-1"></i>İndir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const RAPOR_INDIR_URL = "{{ url_for('rapor_indir') }}";
+    const TURKCE_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+    function raporIndir(tip) {
+        let url = RAPOR_INDIR_URL + "?filtre=";
+
+        if (tip === "yil") {
+            const yil = document.getElementById("select-yil").value;
+            url += "yil_" + yil;
+        } else if (tip === "ay") {
+            const yil = document.getElementById("select-ay-yil").value;
+            const ay = document.getElementById("select-ay").value.padStart(2, "0");
+            url += "ay_" + yil + "_" + ay;
+        } else if (tip === "hafta") {
+            const yil = document.getElementById("select-hafta-yil").value;
+            const ay = document.getElementById("select-hafta-ay").value.padStart(2, "0");
+            const haftaNo = document.getElementById("select-hafta-no").value;
+            url += "hafta_" + yil + "_" + ay + "_" + haftaNo;
+        } else if (tip === "ozel") {
+            const baslangic = document.getElementById("input-baslangic").value;
+            const bitis = document.getElementById("input-bitis").value;
+            if (!baslangic || !bitis) {
+                alert("Lütfen başlangıç ve bitiş tarihlerini seçin.");
+                return;
+            }
+            if (baslangic > bitis) {
+                alert("Başlangıç tarihi, bitiş tarihinden sonra olamaz.");
+                return;
+            }
+            url += "ozel&baslangic=" + baslangic + "&bitis=" + bitis;
+        }
+
+        window.location.href = url;
+    }
+
+    function haftalariGuncelle() {
+        const yil = parseInt(document.getElementById("select-hafta-yil").value);
+        const ay = parseInt(document.getElementById("select-hafta-ay").value);
+        const select = document.getElementById("select-hafta-no");
+        select.innerHTML = "";
+
+        // Ayın ilk gününün pazartesisini bul
+        const ayin1i = new Date(yil, ay - 1, 1);
+        const gun = ayin1i.getDay(); // 0=Pazar, 1=Pazartesi
+        let ilkPazartesiOffset = (gun === 0) ? 1 : (gun === 1) ? 0 : (8 - gun);
+        let ilkPazartesi = new Date(yil, ay - 1, 1 + ilkPazartesiOffset);
+
+        // Ayın son gününü bul
+        const sonGun = new Date(yil, ay, 0).getDate();
+
+        let haftaNo = 1;
+        let tarih = new Date(ilkPazartesi);
+
+        while (tarih.getMonth() === ay - 1) {
+            const pazartesiGun = tarih.getDate();
+            const pazarGun = Math.min(pazartesiGun + 6, sonGun);
+            const etiket = haftaNo + ". Hafta (" + pazartesiGun + " " +
+                TURKCE_AYLAR[ay] + " – " + pazarGun + " " + TURKCE_AYLAR[ay] + ")";
+
+            const opt = document.createElement("option");
+            opt.value = haftaNo;
+            opt.textContent = etiket;
+            select.appendChild(opt);
+
+            haftaNo++;
+            tarih.setDate(tarih.getDate() + 7);
+        }
+
+        if (select.options.length === 0) {
+            const opt = document.createElement("option");
+            opt.value = "1";
+            opt.textContent = "Bu ayda pazartesi yok";
+            select.appendChild(opt);
+        }
+    }
+
+    // Sayfa yüklendiğinde hafta listesini doldur
+    document.addEventListener("DOMContentLoaded", haftalariGuncelle);
+</script>
+{% endblock %}

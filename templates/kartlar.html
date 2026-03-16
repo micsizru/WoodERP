@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- ─── Page Header ─── -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h2><i class="bi bi-person-vcard me-2"></i>Kart Yönetimi (Cari & Fabrika)</h2>
+</div>
+
+<!-- ─── Tabs Navigation ─── -->
+<ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-4 shadow-sm border" id="kartTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold py-3" id="cari-tab" data-bs-toggle="tab" data-bs-target="#cari-pane" type="button" role="tab">
+            <i class="bi bi-people-fill me-2"></i>Müşteri / Cariler
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold py-3" id="fabrika-tab" data-bs-toggle="tab" data-bs-target="#fabrika-pane" type="button" role="tab">
+            <i class="bi bi-building-fill me-2"></i>Fabrika / Sevk Yerleri
+        </button>
+    </li>
+</ul>
+
+<!-- ─── Tab Content ─── -->
+<div class="tab-content" id="kartTabsContent">
+    
+    <!-- ── Cari Sekmesi ── -->
+    <div class="tab-pane fade show active" id="cari-pane" role="tabpanel" aria-labelledby="cari-tab">
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-ma-primary btn-lg px-4 shadow" data-bs-toggle="modal" data-bs-target="#ekleCariModal">
+                <i class="bi bi-plus-lg me-1"></i> Yeni Cari Ekle
+            </button>
+        </div>
+
+        <div class="row g-3">
+            {% for c in cariler %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                    <div class="card-header bg-success-subtle border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-success text-white px-2 py-1">{{ c.firma_kodu }}</span>
+                        </div>
+                        <h4 class="fw-bold mt-2 mb-0 text-dark">{{ c.firma_adi }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="bi bi-geo-alt-fill text-muted me-2"></i>
+                            <span class="text-secondary small">{{ c.firma_adres or 'Adres girilmemiş' }}</span>
+                        </div>
+                        <div class="row g-2 small border-top pt-2">
+                            <div class="col-6">
+                                <div class="text-muted"><i class="bi bi-hash me-1"></i>V. No</div>
+                                <div class="fw-bold text-dark">{{ c.vergi_numarasi or '-' }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted"><i class="bi bi-telephone-fill me-1"></i>Tel</div>
+                                <div class="fw-bold text-dark">{{ c.telefon_no or '-' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-3 d-flex gap-2">
+                        <button class="btn btn-ma-accent flex-grow-1 py-1" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#duzenleModal" 
+                                data-tur="cari"
+                                data-kod="{{ c.firma_kodu }}"
+                                data-ad="{{ c.firma_adi }}"
+                                data-vd="{{ c.vergi_dairesi }}"
+                                data-vn="{{ c.vergi_numarasi }}"
+                                data-adr="{{ c.firma_adres }}"
+                                data-ep="{{ c.e_posta }}"
+                                data-tel="{{ c.telefon_no }}">
+                            <i class="bi bi-pencil-square me-1"></i> Düzenle
+                        </button>
+                        <button class="btn btn-outline-danger py-1 px-3"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#silModal"
+                                data-tur="cari"
+                                data-kod="{{ c.firma_kodu }}"
+                                data-ad="{{ c.firma_adi }}">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="display-1 text-muted opacity-25 mb-3">📂</div>
+                <h4 class="text-muted">Henüz kayıtlı cari bulunmuyor.</h4>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ── Fabrika Sekmesi ── -->
+    <div class="tab-pane fade" id="fabrika-pane" role="tabpanel" aria-labelledby="fabrika-tab">
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-ma-primary btn-lg px-4 shadow" data-bs-toggle="modal" data-bs-target="#ekleFabrikaModal">
+                <i class="bi bi-plus-lg me-1"></i> Yeni Fabrika Ekle
+            </button>
+        </div>
+
+        <div class="row g-3">
+            {% for f in fabrikalar %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                    <div class="card-header bg-info-subtle border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-info text-dark px-2 py-1 text-uppercase">{{ f.firma_kodu }}</span>
+                        </div>
+                        <h4 class="fw-bold mt-2 mb-0 text-dark">{{ f.firma_adi }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="bi bi-geo-alt-fill text-muted me-2"></i>
+                            <span class="text-secondary small">{{ f.firma_adres or 'Adres girilmemiş' }}</span>
+                        </div>
+                        <div class="row g-2 small border-top pt-2">
+                            <div class="col-6">
+                                <div class="text-muted"><i class="bi bi-hash me-1"></i>V. No</div>
+                                <div class="fw-bold text-dark">{{ f.vergi_numarasi or '-' }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted"><i class="bi bi-telephone-fill me-1"></i>Tel</div>
+                                <div class="fw-bold text-dark">{{ f.telefon_no or '-' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-3 d-flex gap-2">
+                        <button class="btn btn-ma-accent flex-grow-1 py-1" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#duzenleModal" 
+                                data-tur="fabrika"
+                                data-kod="{{ f.firma_kodu }}"
+                                data-ad="{{ f.firma_adi }}"
+                                data-vd="{{ f.vergi_dairesi }}"
+                                data-vn="{{ f.vergi_numarasi }}"
+                                data-adr="{{ f.firma_adres }}"
+                                data-ep="{{ f.e_posta }}"
+                                data-tel="{{ f.telefon_no }}">
+                            <i class="bi bi-pencil-square me-1"></i> Düzenle
+                        </button>
+                        <button class="btn btn-outline-danger py-1 px-3"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#silModal"
+                                data-tur="fabrika"
+                                data-kod="{{ f.firma_kodu }}"
+                                data-ad="{{ f.firma_adi }}">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="display-1 text-muted opacity-25 mb-3">🏢</div>
+                <h4 class="text-muted">Henüz kayıtlı fabrika bulunmuyor.</h4>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODALLAR ─── -->
+
+<!-- Yeni Cari Ekle Modal -->
+<div class="modal fade" id="ekleCariModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form action="{{ url_for('kart_ekle', tur='cari') }}" method="POST">
+                <div class="modal-header bg-ma-primary text-white border-0">
+                    <h5 class="modal-title fw-bold">Yeni Cari Kartı Oluştur</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Firma Adı *</label>
+                        <input type="text" name="firma_adi" class="form-control" required placeholder="Firma tam adı">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Vergi Dairesi</label>
+                            <input type="text" name="vergi_dairesi" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Vergi Numarası</label>
+                            <input type="text" name="vergi_numarasi" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Adres</label>
+                        <textarea name="firma_adres" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">E-Posta</label>
+                            <input type="email" name="e_posta" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Telefon</label>
+                            <input type="text" name="telefon_no" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-ma-primary px-4">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Yeni Fabrika Ekle Modal -->
+<div class="modal fade" id="ekleFabrikaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form action="{{ url_for('kart_ekle', tur='fabrika') }}" method="POST">
+                <div class="modal-header bg-ma-primary text-white border-0">
+                    <h5 class="modal-title fw-bold">Yeni Fabrika Kartı Oluştur</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Fabrika Adı *</label>
+                        <input type="text" name="firma_adi" class="form-control" required placeholder="Fabrika/Sevk Yeri adı">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Vergi Dairesi</label>
+                            <input type="text" name="vergi_dairesi" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Vergi Numarası</label>
+                            <input type="text" name="vergi_numarasi" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Adres</label>
+                        <textarea name="firma_adres" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">E-Posta</label>
+                            <input type="email" name="e_posta" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Telefon</label>
+                            <input type="text" name="telefon_no" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-ma-primary px-4">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Genel Düzenle Modal -->
+<div class="modal fade" id="duzenleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <form id="duzenleForm" method="POST">
+                <div class="modal-header bg-ma-accent text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Kartı Düzenle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 d-flex align-items-center mb-3 border-0">
+                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                        <span class="small fw-bold">Firma Kodu: <span id="duzenleKodLabel"></span></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Firma/Fabrika Adı *</label>
+                        <input type="text" name="firma_adi" id="duzenleFirmaAdi" class="form-control" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Vergi Dairesi</label>
+                            <input type="text" name="vergi_dairesi" id="duzenleVergiDairesi" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Vergi Numarası</label>
+                            <input type="text" name="vergi_numarasi" id="duzenleVergiNo" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Adres</label>
+                        <textarea name="firma_adres" id="duzenleAdres" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">E-Posta</label>
+                            <input type="email" name="e_posta" id="duzenleEposta" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">Telefon</label>
+                            <input type="text" name="telefon_no" id="duzenleTelefon" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-ma-accent px-4 shadow">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Genel Sil Onay Modal -->
+<div class="modal fade" id="silModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow rounded-4 text-center">
+            <div class="modal-body p-4">
+                <div class="text-danger mb-3" style="font-size: 3rem;"><i class="bi bi-exclamation-octagon-fill"></i></div>
+                <h5 class="fw-bold">Emin misiniz?</h5>
+                <p class="text-muted small">Bu kartı sildiğinizde geri alamazsınız.</p>
+                <div class="bg-light p-2 rounded small fw-bold mb-3" id="silFirmaLabel"></div>
+                <form id="silForm" method="POST">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2 fw-bold">Evet, Kalıcı Olarak Sil</button>
+                        <button type="button" class="btn btn-ma-outline py-2 border-0" data-bs-dismiss="modal">İptal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Düzenle Modalı Veri Doldurma
+    const duzenleModal = document.getElementById('duzenleModal');
+    duzenleModal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        const tur = btn.getAttribute('data-tur');
+        const kod = btn.getAttribute('data-kod');
+        const ad = btn.getAttribute('data-ad');
+        const vd = btn.getAttribute('data-vd');
+        const vn = btn.getAttribute('data-vn');
+        const adr = btn.getAttribute('data-adr');
+        const ep = btn.getAttribute('data-ep');
+        const tel = btn.getAttribute('data-tel');
+
+        const form = document.getElementById('duzenleForm');
+        form.action = `/kart_duzenle/${tur}/${kod}`;
+
+        document.getElementById('duzenleKodLabel').textContent = kod;
+        document.getElementById('duzenleFirmaAdi').value = ad;
+        document.getElementById('duzenleVergiDairesi').value = vd;
+        document.getElementById('duzenleVergiNo').value = vn;
+        document.getElementById('duzenleAdres').value = adr;
+        document.getElementById('duzenleEposta').value = ep;
+        document.getElementById('duzenleTelefon').value = tel;
+    });
+
+    // Sil Modalı Veri Doldurma
+    const silModal = document.getElementById('silModal');
+    silModal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        const tur = btn.getAttribute('data-tur');
+        const kod = btn.getAttribute('data-kod');
+        const ad = btn.getAttribute('data-ad');
+
+        const form = document.getElementById('silForm');
+        form.action = `/kart_sil/${tur}/${kod}`;
+        
+        document.getElementById('silFirmaLabel').textContent = `[${kod}] ${ad}`;
+    });
+</script>
+{% endblock %}

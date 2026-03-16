@@ -59,6 +59,38 @@ class FisDetayi(db.Model):
         return f"<FisDetayi {self.id} – {self.agac_cinsi}>"
 
 
+class Cari(db.Model):
+    """Cari (Müşteri/Tedarikçi) kartları."""
+    __tablename__ = "cari"
+
+    firma_kodu = db.Column(db.String(20), primary_key=True)
+    firma_adi = db.Column(db.String(200), unique=True, nullable=False)
+    vergi_dairesi = db.Column(db.String(100))
+    vergi_numarasi = db.Column(db.String(50))
+    firma_adres = db.Column(db.Text)
+    e_posta = db.Column(db.String(100))
+    telefon_no = db.Column(db.String(20))
+
+    def __repr__(self):
+        return f"<Cari {self.firma_kodu} - {self.firma_adi}>"
+
+
+class Fabrika(db.Model):
+    """Fabrika (Sevk Yeri) kartları."""
+    __tablename__ = "fabrika"
+
+    firma_kodu = db.Column(db.String(20), primary_key=True)
+    firma_adi = db.Column(db.String(200), unique=True, nullable=False)
+    vergi_dairesi = db.Column(db.String(100))
+    vergi_numarasi = db.Column(db.String(50))
+    firma_adres = db.Column(db.Text)
+    e_posta = db.Column(db.String(100))
+    telefon_no = db.Column(db.String(20))
+
+    def __repr__(self):
+        return f"<Fabrika {self.firma_kodu} - {self.firma_adi}>"
+
+
 # ───────────────────────── Sabit Dropdown Verileri ─────────────────────────
 
 AGAC_CINSLERI = [
@@ -148,6 +180,27 @@ def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
 
     # Filtre yok veya geçersiz → tüm veriler
     return None, None
+
+
+def yeni_firma_kodu_uret(tur):
+    """Cari için C-001, Fabrika için F-001 formatında otomatik kod üretir."""
+    if tur == 'cari':
+        son_kayit = Cari.query.order_by(Cari.firma_kodu.desc()).first()
+        prefix = 'C-'
+    else:
+        son_kayit = Fabrika.query.order_by(Fabrika.firma_kodu.desc()).first()
+        prefix = 'F-'
+        
+    if son_kayit and son_kayit.firma_kodu.startswith(prefix):
+        try:
+            num = int(son_kayit.firma_kodu.split('-')[1])
+            yeni_num = num + 1
+        except ValueError:
+            yeni_num = 1
+    else:
+        yeni_num = 1
+        
+    return f"{prefix}{yeni_num:03d}"
 
 
 # ───────────────────────── Route'lar ─────────────────────────
@@ -247,6 +300,87 @@ def fis_sil(fis_id):
     db.session.commit()
     flash("Fiş başarıyla silindi.", "success")
     return redirect(url_for("fisleri_goruntule"))
+
+
+# ─── Kartlar (Cari & Fabrika) Route'ları ───
+
+@app.route("/kartlar")
+def kartlar():
+    """Cari ve Fabrika listeleme sayfası."""
+    cariler = Cari.query.order_by(Cari.firma_kodu).all()
+    fabrikalar = Fabrika.query.order_by(Fabrika.firma_kodu).all()
+    return render_template("kartlar.html", cariler=cariler, fabrikalar=fabrikalar)
+
+
+@app.route("/kart_ekle/<tur>", methods=["POST"])
+def kart_ekle(tur):
+    """Yeni Cari veya Fabrika ekler."""
+    Model = Cari if tur == 'cari' else Fabrika
+    
+    firma_adi = request.form.get("firma_adi", "").strip()
+    if not firma_adi:
+        flash("Firma adı zorunludur.", "danger")
+        return redirect(url_for("kartlar"))
+        
+    mevcut = Model.query.filter_by(firma_adi=firma_adi).first()
+    if mevcut:
+        flash(f"Bu firma adı zaten mevcut: {firma_adi}", "danger")
+        return redirect(url_for("kartlar"))
+        
+    yeni_kod = yeni_firma_kodu_uret(tur)
+    
+    yeni_kart = Model(
+        firma_kodu=yeni_kod,
+        firma_adi=firma_adi,
+        vergi_dairesi=request.form.get("vergi_dairesi", "").strip(),
+        vergi_numarasi=request.form.get("vergi_numarasi", "").strip(),
+        firma_adres=request.form.get("firma_adres", "").strip(),
+        e_posta=request.form.get("e_posta", "").strip(),
+        telefon_no=request.form.get("telefon_no", "").strip()
+    )
+    db.session.add(yeni_kart)
+    db.session.commit()
+    flash(f"{'Cari' if tur == 'cari' else 'Fabrika'} başarıyla eklendi. (Kod: {yeni_kod})", "success")
+    return redirect(url_for("kartlar"))
+
+
+@app.route("/kart_duzenle/<tur>/<firma_kodu>", methods=["POST"])
+def kart_duzenle(tur, firma_kodu):
+    """Mevcut Cari veya Fabrikayı günceller."""
+    Model = Cari if tur == 'cari' else Fabrika
+    kart = Model.query.get_or_404(firma_kodu)
+    
+    yeni_ad = request.form.get("firma_adi", "").strip()
+    if not yeni_ad:
+        flash("Firma adı zorunludur.", "danger")
+        return redirect(url_for("kartlar"))
+        
+    mevcut = Model.query.filter(Model.firma_adi == yeni_ad, Model.firma_kodu != firma_kodu).first()
+    if mevcut:
+        flash(f"Bu firma adı başka bir kayıtta kullanılıyor: {yeni_ad}", "danger")
+        return redirect(url_for("kartlar"))
+        
+    kart.firma_adi = yeni_ad
+    kart.vergi_dairesi = request.form.get("vergi_dairesi", "").strip()
+    kart.vergi_numarasi = request.form.get("vergi_numarasi", "").strip()
+    kart.firma_adres = request.form.get("firma_adres", "").strip()
+    kart.e_posta = request.form.get("e_posta", "").strip()
+    kart.telefon_no = request.form.get("telefon_no", "").strip()
+    
+    db.session.commit()
+    flash(f"{'Cari' if tur == 'cari' else 'Fabrika'} başarıyla güncellendi.", "success")
+    return redirect(url_for("kartlar"))
+
+
+@app.route("/kart_sil/<tur>/<firma_kodu>", methods=["POST"])
+def kart_sil(tur, firma_kodu):
+    """Mevcut Cari veya Fabrikayı siler."""
+    Model = Cari if tur == 'cari' else Fabrika
+    kart = Model.query.get_or_404(firma_kodu)
+    db.session.delete(kart)
+    db.session.commit()
+    flash(f"{'Cari' if tur == 'cari' else 'Fabrika'} başarıyla silindi.", "success")
+    return redirect(url_for("kartlar"))
 
 
 @app.route("/raporlar")

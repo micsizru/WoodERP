@@ -10,34 +10,34 @@
 </div>
 
 {% if fisler %}
-<div class="table-responsive">
+<!-- ─── Masaüstü Görünüm (Sadece Tablet/PC) ─── -->
+<div class="table-responsive d-none d-md-block">
     <table class="table table-ma table-hover mb-0">
         <thead>
             <tr>
                 <th>#</th>
                 <th>Tarih</th>
                 <th>Cari</th>
-                <th class="d-none d-md-table-cell">Fabrika</th>
-                <th class="d-none d-md-table-cell">Plaka No</th>
-                <th class="d-none d-md-table-cell">Kalem</th>
-                <th class="text-center d-none d-md-table-cell">İşlemler</th>
+                <th>Fabrika</th>
+                <th>Plaka No</th>
+                <th>Kalem</th>
+                <th class="text-center">İşlemler</th>
             </tr>
         </thead>
         <tbody>
             {% for fis in fisler %}
-            <!-- Ana Satır -->
-            <tr class="fis-row" data-bs-toggle="collapse" data-bs-target="#detail-{{ fis.id }}" aria-expanded="false" style="cursor: pointer;">
+            <tr>
                 <td><strong>{{ fis.id }}</strong></td>
                 <td>{{ fis.tarih.strftime('%d.%m.%Y') }}</td>
                 <td>{{ fis.sevk_eden_cari }}</td>
-                <td class="d-none d-md-table-cell">{{ fis.sevk_yeri_fabrika }}</td>
-                <td class="d-none d-md-table-cell">{{ fis.plaka_no }}</td>
-                <td class="d-none d-md-table-cell">
+                <td>{{ fis.sevk_yeri_fabrika }}</td>
+                <td>{{ fis.plaka_no }}</td>
+                <td>
                     <span class="badge rounded-pill" style="background:var(--ma-primary);">
                         {{ fis.detaylar | length }}
                     </span>
                 </td>
-                <td class="text-center d-none d-md-table-cell">
+                <td class="text-center">
                     <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-sm btn-ma-accent me-1">
                         <i class="bi bi-eye-fill"></i> Detay
                     </a>
@@ -51,46 +51,55 @@
                     </button>
                 </td>
             </tr>
-            <!-- Mobil Detay Accordion Satırı -->
-            <tr class="d-md-none border-0">
-                <td colspan="3" class="p-0 border-0">
-                    <div class="collapse accordion-collapse" id="detail-{{ fis.id }}">
-                        <div class="p-3 bg-light border-bottom">
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted d-block">Fabrika</small>
-                                    <span class="fw-bold">{{ fis.sevk_yeri_fabrika }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block">Plaka No</small>
-                                    <span class="fw-bold">{{ fis.plaka_no }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block">Kalem Sayısı</small>
-                                    <span class="badge rounded-pill" style="background:var(--ma-primary);">{{ fis.detaylar | length }}</span>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-ma-accent flex-grow-1 py-2">
-                                    <i class="bi bi-eye-fill me-1"></i> Detay
-                                </a>
-                                <button type="button"
-                                        class="btn btn-ma-danger flex-grow-1 py-2"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#silModal"
-                                        data-sil-url="{{ url_for('fis_sil', fis_id=fis.id) }}"
-                                        data-fis-id="{{ fis.id }}">
-                                    <i class="bi bi-trash3-fill me-1"></i> Sil
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- ─── Mobil Görünüm (Yaşlı Dostu Kartlar) ─── -->
+<div class="d-md-none">
+    {% for fis in fisler %}
+    <div class="fis-card-mobile card shadow-sm mb-3 border-0" style="border-radius: 16px; overflow: hidden;">
+        <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">#{{ fis.id }}</span>
+                <span class="text-muted fw-bold"><i class="bi bi-calendar3 me-1"></i>{{ fis.tarih.strftime('%d.%m.%Y') }}</span>
+            </div>
+            
+            <h4 class="fw-bolder mb-1 text-dark">{{ fis.sevk_eden_cari }}</h4>
+            <div class="mb-3">
+                <div class="d-flex align-items-center text-secondary mb-1">
+                    <i class="bi bi-building me-2"></i>
+                    <span class="fw-bold">{{ fis.sevk_yeri_fabrika }}</span>
+                </div>
+                <div class="row g-0">
+                    <div class="col-6 text-muted small">
+                        <i class="bi bi-truck me-1"></i> {{ fis.plaka_no }}
+                    </div>
+                    <div class="col-6 text-muted small text-end">
+                        <i class="bi bi-box-seam me-1"></i> {{ fis.detaylar | length }} Kalem
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-ma-accent w-100 py-3 fw-bold fs-5">
+                    <i class="bi bi-eye-fill me-2"></i> Detay
+                </a>
+                <button type="button"
+                        class="btn btn-ma-danger w-100 py-3 fw-bold fs-5"
+                        data-bs-toggle="modal"
+                        data-bs-target="#silModal"
+                        data-sil-url="{{ url_for('fis_sil', fis_id=fis.id) }}"
+                        data-fis-id="{{ fis.id }}">
+                    <i class="bi bi-trash3-fill me-2"></i> Sil
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
 {% else %}
 <div class="text-center py-5">
     <div style="font-size:4rem; margin-bottom:1rem;">📭</div>

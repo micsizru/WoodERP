@@ -10,6 +10,7 @@ from flask import (
 )
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
+import pytz
 
 # ───────────────────────── App Konfigürasyonu ─────────────────────────
 app = Flask(__name__)
@@ -108,7 +109,7 @@ AGAC_CINSLERI = [
     "Diş Budak",
 ]
 
-CAPLER = ["6cm altı", "6-15cm arası", "15 üstü"]
+CAPLER = ["-", "6cm altı", "6-15cm arası", "15 üstü"]
 
 BIRIMLER = ["Ton", "Ster", "m³", "Kg"]
 
@@ -180,6 +181,11 @@ def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
 
     # Filtre yok veya geçersiz → tüm veriler
     return None, None
+
+
+def istanbul_simdi():
+    """Türkiye yerel saatini döner."""
+    return datetime.now(pytz.timezone('Europe/Istanbul'))
 
 
 def yeni_firma_kodu_uret(tur):
@@ -266,7 +272,7 @@ def yeni_fis_kaydet():
             detay = FisDetayi(
                 fis_id=yeni_fis.id,
                 agac_cinsi=k["agac_cinsi"],
-                cap=k["cap"],
+                cap=k.get("cap", "-") or "-",
                 miktar=miktar,
                 birim=k["birim"],
                 birim_fiyat=birim_fiyat,
@@ -311,10 +317,47 @@ def fis_sil(fis_id):
 
 @app.route("/kartlar")
 def kartlar():
-    """Cari ve Fabrika listeleme sayfası."""
+    """Cari ve Fabrika listeleme sayfası + Ticaret Hacimleri."""
+    now = istanbul_simdi()
+    bu_ay_baslangic = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    son_30_gun_baslangic = (now - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def hacim_hesapla(firma_adi, tip='cari'):
+        # Fis ve FisDetayi birleştirerek toplam tutar hesabı
+        sorgu_base = db.session.query(db.func.sum(FisDetayi.toplam_tutar)).join(Fis)
+        if tip == 'cari':
+            sorgu_base = sorgu_base.filter(Fis.sevk_eden_cari == firma_adi)
+        else:
+            sorgu_base = sorgu_base.filter(Fis.sevk_yeri_fabrika == firma_adi)
+        
+        # 1. Tüm Zamanlar
+        tum_zamanlar = sorgu_base.scalar() or 0.0
+        
+        # 2. Bu Ay
+        bu_ay = sorgu_base.filter(Fis.tarih >= bu_ay_baslangic.date()).scalar() or 0.0
+        
+        # 3. Son 30 Gün
+        son_30 = sorgu_base.filter(Fis.tarih >= son_30_gun_baslangic.date()).scalar() or 0.0
+        
+        return {
+            'tum': round(tum_zamanlar, 2),
+            'bu_ay': round(bu_ay, 2),
+            'son_30': round(son_30, 2)
+        }
+
     cariler = Cari.query.order_by(Cari.firma_kodu).all()
+    cariler_data = []
+    for c in cariler:
+        c.hacim = hacim_hesapla(c.firma_adi, 'cari')
+        cariler_data.append(c)
+
     fabrikalar = Fabrika.query.order_by(Fabrika.firma_kodu).all()
-    return render_template("kartlar.html", cariler=cariler, fabrikalar=fabrikalar)
+    fabrikalar_data = []
+    for f in fabrikalar:
+        f.hacim = hacim_hesapla(f.firma_adi, 'fabrika')
+        fabrikalar_data.append(f)
+
+    return render_template("kartlar.html", cariler=cariler_data, fabrikalar=fabrikalar_data)
 
 
 @app.route("/kart_ekle/<tur>", methods=["POST"])
@@ -397,11 +440,17 @@ def raporlar():
     en_eski_yil = en_eski.year if en_eski else bugun.year
     yillar = list(range(bugun.year, en_eski_yil - 1, -1))
 
+    # Filtreler için Cari ve Fabrika listesi
+    cariler = Cari.query.order_by(Cari.firma_adi).all()
+    fabrikalar = Fabrika.query.order_by(Fabrika.firma_adi).all()
+
     return render_template(
         "raporlar.html",
         bugun=bugun.isoformat(),
         yillar=yillar,
         aylar=TURKCE_AYLAR,
+        cariler=cariler,
+        fabrikalar=fabrikalar
     )
 
 
@@ -411,6 +460,10 @@ def rapor_indir():
     filtre = request.args.get("filtre", "")
     baslangic_str = request.args.get("baslangic", "")
     bitis_str = request.args.get("bitis", "")
+    
+    # Yeni filtreler
+    cari_adi = request.args.get("cari_adi", "")
+    fabrika_adi = request.args.get("fabrika_adi", "")
 
     baslangic, bitis = tarih_araligi_hesapla(filtre, baslangic_str, bitis_str)
 
@@ -435,6 +488,14 @@ def rapor_indir():
     # Tarih filtresini uygula
     if baslangic and bitis:
         sorgu = sorgu.filter(Fis.tarih >= baslangic, Fis.tarih <= bitis)
+
+    # Cari filtresi
+    if cari_adi:
+        sorgu = sorgu.filter(Fis.sevk_eden_cari == cari_adi)
+    
+    # Fabrika filtresi
+    if fabrika_adi:
+        sorgu = sorgu.filter(Fis.sevk_yeri_fabrika == fabrika_adi)
 
     sonuclar = sorgu.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
 

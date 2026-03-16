@@ -6,37 +6,62 @@
     <h2><i class="bi bi-bar-chart-line-fill me-2"></i>Rapor Sorgulama</h2>
 </div>
 
+<!-- ─── Gelişmiş Filtre Seçenekleri ─── -->
+<div class="form-section mb-4">
+    <div class="form-section-title"><i class="bi bi-funnel-fill text-primary me-1"></i>Firma Filtreleri</div>
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-bold small" for="filter-cari">Cari Seçin</label>
+            <select class="form-select border-primary shadow-sm" id="filter-cari">
+                <option value="">-- Tüm Cariler --</option>
+                {% for c in cariler %}
+                <option value="{{ c.firma_adi }}">{{ c.firma_adi }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-bold small" for="filter-fabrika">Fabrika Seçin</label>
+            <select class="form-select border-info shadow-sm" id="filter-fabrika">
+                <option value="">-- Tüm Fabrikalar --</option>
+                {% for f in fabrikalar %}
+                <option value="{{ f.firma_adi }}">{{ f.firma_adi }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
 <!-- ─── Hızlı Filtreler ─── -->
 <div class="form-section mb-4">
-    <div class="form-section-title"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı Filtreler</div>
+    <div class="form-section-title"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı Zaman Filtreleri</div>
     <div class="rapor-hizli-grid">
-        <a href="{{ url_for('rapor_indir', filtre='bugun') }}" class="rapor-hizli-btn" id="btn-bugun">
+        <button onclick="raporHizliIndir('bugun')" class="rapor-hizli-btn" id="btn-bugun">
             <i class="bi bi-calendar-day"></i> Bugün
-        </a>
-        <a href="{{ url_for('rapor_indir', filtre='son_3_gun') }}" class="rapor-hizli-btn" id="btn-son3gun">
+        </button>
+        <button onclick="raporHizliIndir('son_3_gun')" class="rapor-hizli-btn" id="btn-son3gun">
             <i class="bi bi-calendar3"></i> Son 3 Gün
-        </a>
-        <a href="{{ url_for('rapor_indir', filtre='son_hafta') }}" class="rapor-hizli-btn" id="btn-sonhafta">
+        </button>
+        <button onclick="raporHizliIndir('son_hafta')" class="rapor-hizli-btn" id="btn-sonhafta">
             <i class="bi bi-calendar-week"></i> Son Hafta
-        </a>
-        <a href="{{ url_for('rapor_indir', filtre='bu_hafta') }}" class="rapor-hizli-btn" id="btn-buhafta">
+        </button>
+        <button onclick="raporHizliIndir('bu_hafta')" class="rapor-hizli-btn" id="btn-buhafta">
             <i class="bi bi-calendar2-week"></i> Bu Hafta
-        </a>
-        <a href="{{ url_for('rapor_indir', filtre='onceki_hafta') }}" class="rapor-hizli-btn" id="btn-oncekihafta">
+        </button>
+        <button onclick="raporHizliIndir('onceki_hafta')" class="rapor-hizli-btn" id="btn-oncekihafta">
             <i class="bi bi-calendar2-minus"></i> Önceki Hafta
-        </a>
-        <a href="{{ url_for('rapor_indir', filtre='son_ay') }}" class="rapor-hizli-btn" id="btn-sonay">
+        </button>
+        <button onclick="raporHizliIndir('son_ay')" class="rapor-hizli-btn" id="btn-sonay">
             <i class="bi bi-calendar-month"></i> Son Ay
-        </a>
-        <a href="{{ url_for('rapor_indir') }}" class="rapor-hizli-btn rapor-hizli-btn-tumu" id="btn-tumu">
+        </button>
+        <button onclick="raporHizliIndir('tumu')" class="rapor-hizli-btn rapor-hizli-btn-tumu" id="btn-tumu">
             <i class="bi bi-cloud-download"></i> Tümünü İndir
-        </a>
+        </button>
     </div>
 </div>
 
 <!-- ─── Detaylı Sorgulama ─── -->
 <div class="form-section mb-4">
-    <div class="form-section-title"><i class="bi bi-search me-1"></i>Detaylı Sorgulama</div>
+    <div class="form-section-title"><i class="bi bi-search me-1"></i>Detaylı Tarih Sorgulama</div>
 
     <div class="row g-3">
         <!-- Yıl Raporu -->
@@ -108,7 +133,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div>
+                    <div class="flex-grow-1">
                         <label class="form-label" for="select-hafta-no">Hafta</label>
                         <select class="form-select" id="select-hafta-no">
                             <!-- JS ile doldurulacak -->
@@ -150,6 +175,16 @@
     const TURKCE_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
         "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
+    function getFirmaFiltreleri() {
+        return "&cari_adi=" + encodeURIComponent(document.getElementById("filter-cari").value) +
+               "&fabrika_adi=" + encodeURIComponent(document.getElementById("filter-fabrika").value);
+    }
+
+    function raporHizliIndir(filtre) {
+        let url = RAPOR_INDIR_URL + "?filtre=" + filtre + getFirmaFiltreleri();
+        window.location.href = url;
+    }
+
     function raporIndir(tip) {
         let url = RAPOR_INDIR_URL + "?filtre=";
 
@@ -179,6 +214,7 @@
             url += "ozel&baslangic=" + baslangic + "&bitis=" + bitis;
         }
 
+        url += getFirmaFiltreleri();
         window.location.href = url;
     }
 

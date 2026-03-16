@@ -219,12 +219,17 @@ def index():
 def yeni_fis_formu():
     """Yeni fiş oluşturma formu."""
     bugun = date.today().isoformat()
+    cariler = Cari.query.order_by(Cari.firma_adi).all()
+    fabrikalar = Fabrika.query.order_by(Fabrika.firma_adi).all()
+    
     return render_template(
         "yeni_fis.html",
         bugun=bugun,
         agac_cinsleri=AGAC_CINSLERI,
         capler=CAPLER,
         birimler=BIRIMLER,
+        cariler=cariler,
+        fabrikalar=fabrikalar
     )
 
 

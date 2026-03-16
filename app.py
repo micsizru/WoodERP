@@ -154,10 +154,12 @@ def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
 
 @app.route("/")
 def index():
-    """Dashboard – toplam kayıt sayıları ve ana menü."""
+    """Dashboard – toplam sayılar ve son 5 fiş."""
     toplam_fis = Fis.query.count()
     toplam_kalem = FisDetayi.query.count()
-    return render_template("index.html", toplam_fis=toplam_fis, toplam_kalem=toplam_kalem)
+    son_fisler = Fis.query.order_by(Fis.tarih.desc(), Fis.id.desc()).limit(5).all()
+    return render_template("index.html", toplam_fis=toplam_fis,
+                           toplam_kalem=toplam_kalem, son_fisler=son_fisler)
 
 
 @app.route("/yeni_fis", methods=["GET"])
@@ -306,6 +308,38 @@ def rapor_indir():
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Sevkiyat Raporu")
+        ws = writer.sheets["Sevkiyat Raporu"]
+
+        from openpyxl.styles import PatternFill, Font, Alignment
+        from openpyxl.utils import get_column_letter
+
+        # Başlık satırı: koyu yeşil zemin, beyaz+kalın yazı
+        header_fill = PatternFill("solid", fgColor="1B5E20")
+        header_font = Font(bold=True, color="FFFFFF", size=10)
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        # Zebra striping: çok açık gri - beyaz
+        stripe_fill = PatternFill("solid", fgColor="F5F5F0")
+        for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+            if row_idx % 2 == 0:
+                for cell in row:
+                    cell.fill = stripe_fill
+
+        # Auto-fit sütun genişlikleri
+        for col_idx, column_cells in enumerate(ws.columns, start=1):
+            max_len = 0
+            for cell in column_cells:
+                try:
+                    val = str(cell.value) if cell.value is not None else ""
+                    max_len = max(max_len, len(val))
+                except Exception:
+                    pass
+            adjusted = min(max_len + 4, 50)  # en fazla 50 karakter genislik
+            ws.column_dimensions[get_column_letter(col_idx)].width = adjusted
+
     output.seek(0)
 
     # Dosya adını tarih aralığına göre oluştur

@@ -17,6 +17,11 @@
     --ma-danger: #c62828;
     --ma-warning: #f57f17;
     --ma-gradient: linear-gradient(135deg, var(--ma-primary) 0%, var(--ma-primary-light) 100%);
+    --ma-gradient: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+    --ma-shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+    --ma-shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --ma-shadow-lg: 0 10px 30px rgba(27, 94, 32, 0.15);
+    --ma-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -43,8 +48,9 @@ body {
 }
 
 .navbar-custom {
-    background: var(--ma-gradient);
-    box-shadow: 0 2px 12px rgba(27, 94, 32, 0.25);
+    background: #1b5e20 !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    border-bottom: 3px solid #144618;
 }
 
 .navbar-custom .nav-link {
@@ -52,13 +58,20 @@ body {
     font-weight: 500;
     padding: 0.6rem 1rem;
     border-radius: 8px;
-    transition: all 0.2s ease;
+    transition: var(--ma-transition);
 }
 
-.navbar-custom .nav-link:hover,
-.navbar-custom .nav-link.active {
+.navbar-custom .nav-link:hover {
     color: #fff !important;
     background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-custom .nav-link.active {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.22);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+    font-weight: 700;
 }
 
 /* ─── Page Header ─── */
@@ -159,6 +172,58 @@ body {
     margin-bottom: 0;
 }
 
+/* ─── Premium Cards ─── */
+.stat-card, .action-card {
+    border: none !important;
+    border-radius: 20px !important;
+    background: #ffffff;
+    box-shadow: var(--ma-shadow-sm);
+    transition: var(--ma-transition);
+}
+
+.stat-card:hover, .action-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--ma-shadow-lg);
+}
+
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+}
+
+.action-card .action-title {
+    font-size: 1.1rem;
+    letter-spacing: -0.2px;
+}
+
+.action-card p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.stat-value {
+    letter-spacing: -1px;
+}
+
+.transition {
+    transition: var(--ma-transition) !important;
+}
+
+.form-section {
+    background: #fff;
+    border-radius: 20px !important;
+    padding: 1.5rem;
+    box-shadow: var(--ma-shadow-sm);
+    border: none !important;
+}
+
 .action-card-green {
     border-left: 5px solid var(--ma-primary);
 }
@@ -193,6 +258,8 @@ body {
 .form-select {
     border-radius: 10px;
     padding: 0.65rem 1rem;
+    padding-right: 2.5rem;
+    /* prevent arrow overlap */
     font-size: 1rem;
     border: 1.5px solid var(--ma-border);
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -220,15 +287,15 @@ body {
     font-weight: 600;
     padding: 0.75rem 1.5rem;
     font-size: 1.05rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
+    transition: all 0.22s ease;
+    box-shadow: 0 4px 15px rgba(27, 94, 32, 0.25);
 }
 
 .btn-ma-primary:hover {
     background: linear-gradient(135deg, var(--ma-primary-dark) 0%, var(--ma-primary) 100%);
     color: #fff;
-    box-shadow: 0 6px 20px rgba(27, 94, 32, 0.4);
-    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(27, 94, 32, 0.45);
+    transform: translateY(-2px);
 }
 
 .btn-ma-accent {
@@ -245,7 +312,8 @@ body {
 .btn-ma-accent:hover {
     background: #5d4037;
     color: #fff;
-    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(93, 64, 55, 0.4);
+    transform: translateY(-2px);
 }
 
 .btn-ma-danger {
@@ -472,6 +540,29 @@ body {
         width: 100%;
         margin-top: 0.5rem;
     }
+}
+
+/* ─── Dashboard Son Fişler Tablosu ─── */
+.son-fis-table {
+    font-size: 0.82rem;
+}
+
+.son-fis-table thead th {
+    font-size: 0.78rem;
+    padding: 0.55rem 0.6rem;
+}
+
+.son-fis-table tbody td {
+    padding: 0.5rem 0.6rem;
+    vertical-align: middle;
+}
+
+.son-fis-cari {
+    max-width: 140px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ─── Footer ─── */

@@ -2,65 +2,120 @@
 
 {% block content %}
 <!-- ─── Page Header ─── -->
-<div class="page-header text-center">
-    <h2><i class="bi bi-speedometer2 me-2"></i>Sevkiyat Yönetim Paneli</h2>
+<div class="page-header text-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-speedometer2 me-2"></i>Sevkiyat Yönetim Paneli</h2>
+    <div style="width: 80px; height: 4px; background: var(--ma-primary); margin: 12px auto; border-radius: 2px;"></div>
 </div>
 
-<!-- ─── Statistics Row ─── -->
-<div class="row g-4 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="stat-card card h-100">
-            <div class="card-body text-center">
-                <div class="stat-icon mx-auto" style="background: rgba(27, 94, 32, 0.1); color: var(--ma-primary);">
-                    <i class="bi bi-receipt-cutoff"></i>
-                </div>
-                <div class="stat-value text-success">{{ toplam_fis }}</div>
-                <div class="stat-label">Toplam Fiş</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card card h-100">
-            <div class="card-body text-center">
-                <div class="stat-icon mx-auto" style="background: rgba(121, 85, 72, 0.1); color: var(--ma-accent);">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                <div class="stat-value" style="color: var(--ma-accent);">{{ toplam_kalem }}</div>
-                <div class="stat-label">Toplam Kalem</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ─── Quick Actions ─── -->
-<h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı İşlemler</h5>
+<!-- ─── Main Grid: Sol (stats + hızlı işlemler) | Sağ (son fişler) ─── -->
 <div class="row g-4">
-    <div class="col-12 col-md-4">
-        <a href="{{ url_for('yeni_fis_formu') }}" class="action-card card action-card-green h-100">
-            <div class="card-body">
-                <span class="action-icon">📝</span>
-                <div class="action-title">Yeni Fiş Oluştur</div>
-                <p class="action-desc">Yeni bir sevkiyat fişi girin</p>
+
+    <!-- ── Sol Kolon (8/12) ── -->
+    <div class="col-12 col-lg-8">
+
+        <!-- İstatistik Kartları -->
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="stat-card card h-100 border-0">
+                    <div class="card-body p-4">
+                        <div class="stat-icon" style="background: rgba(27, 94, 32, 0.1); color: var(--ma-primary);">
+                            <i class="bi bi-receipt-cutoff"></i>
+                        </div>
+                        <div class="stat-value text-success h2 fw-bold mb-1">{{ toplam_fis }}</div>
+                        <div class="stat-label text-muted fw-medium">Toplam Fiş</div>
+                    </div>
+                </div>
             </div>
-        </a>
-    </div>
-    <div class="col-12 col-md-4">
-        <a href="{{ url_for('fisleri_goruntule') }}" class="action-card card action-card-brown h-100">
-            <div class="card-body">
-                <span class="action-icon">📋</span>
-                <div class="action-title">Fişleri Görüntüle</div>
-                <p class="action-desc">Geçmiş fişleri inceleyin</p>
+            <div class="col-6">
+                <div class="stat-card card h-100 border-0">
+                    <div class="card-body p-4">
+                        <div class="stat-icon" style="background: rgba(121, 85, 72, 0.1); color: var(--ma-accent);">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <div class="stat-value h2 fw-bold mb-1" style="color: var(--ma-accent);">{{ toplam_kalem }}</div>
+                        <div class="stat-label text-muted fw-medium">Toplam Kalem</div>
+                    </div>
+                </div>
             </div>
-        </a>
-    </div>
-    <div class="col-12 col-md-4">
-        <a href="{{ url_for('raporlar') }}" class="action-card card action-card-teal h-100">
-            <div class="card-body">
-                <span class="action-icon">📊</span>
-                <div class="action-title">Rapor Sorgula</div>
-                <p class="action-desc">Tarih filtreleyerek rapor indirin</p>
+        </div>
+
+        <!-- Hızlı İşlemler -->
+        <h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı İşlemler</h5>
+        <div class="row g-3">
+            <div class="col-12 col-sm-4">
+                <a href="{{ url_for('yeni_fis_formu') }}" class="action-card card h-100 text-decoration-none transition">
+                    <div class="card-body text-center p-4">
+                        <div class="display-5 mb-2">📝</div>
+                        <div class="action-title fw-bold text-dark">Yeni Fiş Oluştur</div>
+                        <p class="small text-muted mb-0">Sevkiyat girişi yapın</p>
+                    </div>
+                </a>
             </div>
-        </a>
+            <div class="col-12 col-sm-4">
+                <a href="{{ url_for('fisleri_goruntule') }}" class="action-card card h-100 text-decoration-none transition">
+                    <div class="card-body text-center p-4">
+                        <div class="display-5 mb-2">📋</div>
+                        <div class="action-title fw-bold text-dark">Fişleri Görüntüle</div>
+                        <p class="small text-muted mb-0">Kayıtları inceleyin</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-12 col-sm-4">
+                <a href="{{ url_for('raporlar') }}" class="action-card card h-100 text-decoration-none transition">
+                    <div class="card-body text-center p-4">
+                        <div class="display-5 mb-2">📊</div>
+                        <div class="action-title fw-bold text-dark">Rapor Sorgula</div>
+                        <p class="small text-muted mb-0">Excel rapor hazırlayın</p>
+                    </div>
+                </a>
+            </div>
+        </div>
     </div>
+
+    <!-- ── Sağ Kolon (4/12): Son Tarihli Fişler ── -->
+    {% if son_fisler %}
+    <div class="col-12 col-lg-4">
+        <div class="form-section h-100 p-0 overflow-hidden border-0 shadow-sm">
+            <div class="px-3 py-3 border-bottom bg-light d-flex align-items-center">
+                <i class="bi bi-clock-history text-success me-2 fs-5"></i>
+                <h6 class="fw-bold mb-0">Son Tarihli Fişler</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 son-fis-table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3 py-2">#</th>
+                            <th class="py-2">Tarih</th>
+                            <th class="py-2">Cari</th>
+                            <th class="text-center pe-3 py-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for fis in son_fisler %}
+                        <tr>
+                            <td class="ps-3 text-muted small fw-semibold">#{{ fis.id }}</td>
+                            <td class="text-nowrap small">{{ fis.tarih.strftime('%d.%m.%y') }}</td>
+                            <td class="son-fis-cari small fw-medium">{{ fis.sevk_eden_cari }}</td>
+                            <td class="text-center pe-3">
+                                <a href="{{ url_for('fis_detay', fis_id=fis.id) }}"
+                                   class="btn btn-sm btn-outline-success border-0 rounded-circle p-1"
+                                   title="Detay">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 text-center border-top">
+                <a href="{{ url_for('fisleri_goruntule') }}" class="small text-success text-decoration-none fw-bold">
+                    Tümünü Gör <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

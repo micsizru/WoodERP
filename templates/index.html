@@ -87,7 +87,7 @@
                             <th class="ps-3 py-2">#</th>
                             <th class="py-2">Tarih</th>
                             <th class="py-2">Cari</th>
-                            <th class="text-center pe-3 py-2"></th>
+                            <th class="text-end pe-3 py-2">İşlem</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
@@ -96,7 +96,7 @@
                             <td class="ps-3 text-muted small fw-semibold">#{{ fis.id }}</td>
                             <td class="text-nowrap small">{{ fis.tarih.strftime('%d.%m.%y') }}</td>
                             <td class="son-fis-cari small fw-medium">{{ fis.sevk_eden_cari }}</td>
-                            <td class="text-center pe-3">
+                            <td class="text-end pe-1">
                                 <a href="{{ url_for('fis_detay', fis_id=fis.id) }}"
                                    class="btn btn-sm btn-outline-success border-0 rounded-circle p-1"
                                    title="Detay">

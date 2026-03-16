@@ -330,6 +330,25 @@ body {
     color: #fff;
 }
 
+/* Accordion Row Styles */
+.fis-row[aria-expanded="true"] {
+    background-color: rgba(27, 94, 32, 0.08) !important;
+}
+
+.accordion-collapse {
+    border-left: 4px solid var(--ma-primary);
+}
+
+@media (max-width: 768px) {
+    .btn-ma-danger, .btn-ma-accent, .btn-ma-primary {
+        padding: 0.85rem 1rem;
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
 .btn-ma-outline {
     background: transparent;
     color: var(--ma-primary);
@@ -558,11 +577,17 @@ body {
 }
 
 .son-fis-cari {
-    max-width: 140px;
+    max-width: 180px;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+    .son-fis-cari {
+        max-width: 100px;
+    }
 }
 
 /* ─── Footer ─── */

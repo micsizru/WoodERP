@@ -3,5 +3,5 @@ __pycache__/
 venv/
 .vscode/
 duzeltilmesi-gerekenler.txt
-pyrightconfig.json
 .env
+pyrightconfig.json

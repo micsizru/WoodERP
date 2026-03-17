@@ -12,12 +12,27 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 import pandas as pd
 import pytz
+import pdfkit
+import platform
 
 # ───────────────────────── App Konfigürasyonu ─────────────────────────
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "marmara-aydoganlar-secret-key-2026"
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "veritabani.db")
+
+# ───────────────────────── PDF Konfigürasyonu (pdfkit) ─────────────────────────
+try:
+    if platform.system() == "Windows":
+        # Windows için tipik yol (Kullanıcı kendi kurulumuna göre düzenlemeli)
+        path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+        pdf_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf) if os.path.exists(path_wkhtmltopdf) else None
+    else:
+        # PythonAnywhere / Linux için tipik yol
+        path_wkhtmltopdf = '/usr/bin/wkhtmltopdf'
+        pdf_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf) if os.path.exists(path_wkhtmltopdf) else None
+except Exception:
+    pdf_config = None
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -384,6 +399,124 @@ def tek_fis_excel(fis_id):
         as_attachment=True,
         download_name=dosya_adi,
     )
+
+
+@app.route("/tek_fis_pdf/<int:fis_id>")
+def tek_fis_pdf(fis_id):
+    """Belirli bir fişi şık formatlı PDF olarak indirir."""
+    fis = Fis.query.get_or_404(fis_id)
+    
+    # PDF için HTML içeriği oluştur
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{ font-family: 'DejaVu Sans', sans-serif; font-size: 12px; color: #333; }}
+            .header {{ text-align: center; margin-bottom: 20px; }}
+            .info-table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+            .info-table td {{ padding: 8px; border: 1px solid #ddd; }}
+            .info-label {{ font-weight: bold; background-color: #f9f9f9; width: 30%; }}
+            .items-table {{ width: 100%; border-collapse: collapse; }}
+            .items-table th {{ background-color: #1B5E20; color: white; padding: 10px; text-align: center; }}
+            .items-table td {{ padding: 8px; border: 1px solid #ddd; text-align: center; }}
+            .zebra-row {{ background-color: #F5F5F0; }}
+            .footer {{ margin-top: 30px; text-align: right; font-style: italic; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1 style="color: #1B5E20; margin-bottom: 5px;">Marmara Aydoğanlar</h1>
+            <h3 style="margin-top: 5px;">Sevkiyat Fişi Bilgileri</h3>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Fiş No:</td><td>#{fis.id}</td>
+                <td class="info-label">Tarih:</td><td>{fis.tarih.strftime('%d.%m.%Y')}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Sevk Eden Cari:</td><td>{fis.sevk_eden_cari}</td>
+                <td class="info-label">Plaka No:</td><td>{fis.plaka_no}</td>
+            </tr>
+            <tr>
+                <td class="info-label">S. Yeri / Fabrika:</td><td>{fis.sevk_yeri_fabrika}</td>
+                <td class="info-label">S. Yeri Fiş No:</td><td>{fis.sevk_yeri_fis_no}</td>
+            </tr>
+        </table>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Ağaç Cinsi</th>
+                    <th>Çap</th>
+                    <th>Miktar</th>
+                    <th>Birim</th>
+                    <th>Birim Fiyat</th>
+                    <th>Toplam Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    toplam_genel = 0
+    for i, d in enumerate(fis.detaylar):
+        row_class = 'class="zebra-row"' if i % 2 == 1 else ''
+        toplam_genel += d.toplam_tutar
+        html_content += f"""
+            <tr {row_class}>
+                <td>{d.agac_cinsi}</td>
+                <td>{d.cap}</td>
+                <td>{d.miktar}</td>
+                <td>{d.birim}</td>
+                <td>{d.birim_fiyat} ₺</td>
+                <td>{d.toplam_tutar} ₺</td>
+            </tr>
+        """
+        
+    html_content += f"""
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: bold; background-color: #eee;">
+                    <td colspan="5" style="text-align: right; padding: 10px;">Genel Toplam:</td>
+                    <td style="text-align: center; padding: 10px;">{toplam_genel:.2f} ₺</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="footer">
+            <p>Oluşturma Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    options = {
+        'encoding': 'UTF-8',
+        'quiet': '',
+        'no-outline': None,
+        'margin-top': '0.75in',
+        'margin-right': '0.75in',
+        'margin-bottom': '0.75in',
+        'margin-left': '0.75in',
+    }
+
+    try:
+        pdf_bytes = pdfkit.from_string(html_content, False, options=options, configuration=pdf_config)
+        
+        output = io.BytesIO(pdf_bytes)
+        dosya_adi = f"Fis_{fis.id}_{fis.sevk_eden_cari.replace(' ', '_')}.pdf"
+        
+        return send_file(
+            output,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=dosya_adi
+        )
+    except Exception as e:
+        flash(f"PDF oluşturulurken hata oluştu: {str(e)}", "danger")
+        return redirect(url_for("fis_detay", fis_id=fis.id))
 
 
 @app.route("/fis_duzenle/<int:fis_id>", methods=["GET", "POST"])

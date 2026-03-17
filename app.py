@@ -9,6 +9,7 @@ from flask import (
     url_for, flash, jsonify, send_file
 )
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect, text
 import pandas as pd
 import pytz
 
@@ -561,9 +562,42 @@ def rapor_indir():
     )
 
 
+def check_and_update_tables():
+    """Modellerdeki yeni sütunları veritabanına otomatik ekler (SQLite uyumlu)."""
+    with app.app_context():
+        inspector = inspect(db.engine)
+        for table_name, table in db.metadata.tables.items():
+            try:
+                existing_columns = [c["name"] for c in inspector.get_columns(table_name)]
+            except Exception:
+                continue
+
+            for column in table.columns:
+                if column.name not in existing_columns:
+                    # SQLite'da NOT NULL sütun eklerken DEFAULT değer zorunludur.
+                    default_clause = ""
+                    if not column.nullable:
+                        col_type = str(column.type).upper()
+                        if any(t in col_type for t in ["INT", "FLOAT", "NUMERIC", "DECIMAL"]):
+                            default_clause = " DEFAULT 0"
+                        elif "BOOL" in col_type:
+                            default_clause = " DEFAULT 0"
+                        else:
+                            default_clause = " DEFAULT ''"
+                    
+                    sql = f'ALTER TABLE {table_name} ADD COLUMN {column.name} {column.type}{default_clause}'
+                    try:
+                        db.session.execute(text(sql))
+                        db.session.commit()
+                        print(f"[*] Migrasyon: {table_name} tablosuna {column.name} sütunu eklendi.")
+                    except Exception as e:
+                        db.session.rollback()
+                        print(f"[!] Migrasyon Hatası ({table_name}.{column.name}): {e}")
+
 # ───────────────────────── Uygulama Başlatma ─────────────────────────
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        check_and_update_tables()
     app.run(debug=True, host="0.0.0.0", port=5000)

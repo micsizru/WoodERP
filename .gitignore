@@ -5,3 +5,5 @@ venv/
 duzeltilmesi-gerekenler.txt
 .env
 pyrightconfig.json
+*.db
+veritabani.db

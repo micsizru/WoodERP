@@ -102,9 +102,9 @@
 {% block scripts %}
 <script>
     // ─── Dropdown verileri (Jinja'dan) ───
-    const agacCinsleri = {{ agac_cinsleri | tojson }};
-    const capler = {{ capler | tojson }};
-    const birimler = {{ birimler | tojson }};
+    const agacCinsleri = JSON.parse('{{ agac_cinsleri | tojson | safe }}');
+    const capler = JSON.parse('{{ capler | tojson | safe }}');
+    const birimler = JSON.parse('{{ birimler | tojson | safe }}');
 
     let kalemSayaci = 0;
 

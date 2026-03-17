@@ -28,7 +28,7 @@ class Fis(db.Model):
     __tablename__ = "fis"
 
     id = db.Column(db.Integer, primary_key=True)
-    tarih = db.Column(db.Date, nullable=False, default=date.today)
+    tarih = db.Column(db.Date, nullable=False, default=lambda: get_istanbul_time().date())
     sevk_eden_cari = db.Column(db.String(200), nullable=False)
     sevk_yeri_fabrika = db.Column(db.String(200), nullable=False)
     sevk_yeri_fis_no = db.Column(db.String(100), nullable=False)
@@ -183,9 +183,13 @@ def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
     return None, None
 
 
-def istanbul_simdi():
+def get_istanbul_time():
     """Türkiye yerel saatini döner."""
     return datetime.now(pytz.timezone('Europe/Istanbul'))
+
+def istanbul_simdi():
+    """Türkiye yerel saatini döner."""
+    return get_istanbul_time()
 
 
 def yeni_firma_kodu_uret(tur):
@@ -224,7 +228,7 @@ def index():
 @app.route("/yeni_fis", methods=["GET"])
 def yeni_fis_formu():
     """Yeni fiş oluşturma formu."""
-    bugun = date.today().isoformat()
+    bugun = get_istanbul_time().strftime("%Y-%m-%d")
     cariler = Cari.query.order_by(Cari.firma_adi).all()
     fabrikalar = Fabrika.query.order_by(Fabrika.firma_adi).all()
     

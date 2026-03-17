@@ -296,7 +296,7 @@ def yeni_fis_kaydet():
 @app.route("/fisleri_goruntule")
 def fisleri_goruntule():
     """Kayıtlı tüm fişleri tarih sırasıyla listeler."""
-    fisler = Fis.query.order_by(Fis.tarih.desc()).all()
+    fisler = Fis.query.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
     return render_template("fisleri_goruntule.html", fisler=fisler)
 
 
@@ -316,6 +316,148 @@ def fis_sil(fis_id):
     db.session.commit()
     flash("Fiş başarıyla silindi.", "success")
     return redirect(url_for("fisleri_goruntule"))
+
+
+@app.route("/tek_fis_excel/<int:fis_id>")
+def tek_fis_excel(fis_id):
+    """Belirli bir fişi şık formatlı Excel olarak indirir."""
+    fis = Fis.query.get_or_404(fis_id)
+    
+    # Verileri DataFrame için hazırla
+    veriler = []
+    for d in fis.detaylar:
+        veriler.append({
+            "Fiş No": fis.id,
+            "Tarih": fis.tarih,
+            "Sevk Eden Cari": fis.sevk_eden_cari,
+            "Fabrika": fis.sevk_yeri_fabrika,
+            "Sevkiyat Fiş No": fis.sevk_yeri_fis_no,
+            "Plaka No": fis.plaka_no,
+            "Ağaç Cinsi": d.agac_cinsi,
+            "Çap": d.cap,
+            "Miktar": d.miktar,
+            "Birim": d.birim,
+            "Birim Fiyat": d.birim_fiyat,
+            "Toplam Tutar": d.toplam_tutar,
+        })
+    
+    df = pd.DataFrame(veriler)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name=f"Fis_{fis.id}")
+        ws = writer.sheets[f"Fis_{fis.id}"]
+
+        from openpyxl.styles import PatternFill, Font, Alignment
+        from openpyxl.utils import get_column_letter
+
+        # Başlık satırı stili
+        header_fill = PatternFill("solid", fgColor="1B5E20")
+        header_font = Font(bold=True, color="FFFFFF", size=10)
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        # Zebra striping
+        stripe_fill = PatternFill("solid", fgColor="F5F5F0")
+        for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+            if row_idx % 2 == 0:
+                for cell in row:
+                    cell.fill = stripe_fill
+
+        # Auto-fit sütunlar
+        for col_idx, column_cells in enumerate(ws.columns, start=1):
+            max_len = 0
+            for cell in column_cells:
+                try:
+                    val = str(cell.value) if cell.value is not None else ""
+                    max_len = max(max_len, len(val))
+                except Exception: pass
+            ws.column_dimensions[get_column_letter(col_idx)].width = min(max_len + 4, 50)
+
+    output.seek(0)
+    dosya_adi = f"Fis_{fis.id}_{fis.sevk_eden_cari.replace(' ', '_')}_{fis.tarih}.xlsx"
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=dosya_adi,
+    )
+
+
+@app.route("/fis_duzenle/<int:fis_id>", methods=["GET", "POST"])
+def fis_duzenle(fis_id):
+    """Mevcut bir fişi düzenler."""
+    fis = Fis.query.get_or_404(fis_id)
+    
+    if request.method == "POST":
+        try:
+            veri = request.get_json()
+            
+            # Üst bilgileri güncelle
+            tarih_str = veri.get("tarih")
+            if tarih_str:
+                fis.tarih = datetime.strptime(tarih_str, "%Y-%m-%d").date()
+            
+            fis.sevk_eden_cari = veri["sevk_eden_cari"].strip()
+            fis.sevk_yeri_fabrika = veri["sevk_yeri_fabrika"].strip()
+            fis.sevk_yeri_fis_no = veri["sevk_yeri_fis_no"].strip()
+            fis.plaka_no = veri["plaka_no"].strip()
+            
+            # Kalemleri güncelle (Eskileri sil, yenileri ekle - En güvenli yol)
+            FisDetayi.query.filter_by(fis_id=fis.id).delete()
+            
+            kalemler = veri.get("kalemler", [])
+            for k in kalemler:
+                miktar = float(k["miktar"])
+                birim_fiyat = float(k["birim_fiyat"])
+                toplam_tutar = round(miktar * birim_fiyat, 2)
+                
+                yeni_detay = FisDetayi(
+                    fis_id=fis.id,
+                    agac_cinsi=k["agac_cinsi"],
+                    cap=k.get("cap", "-") or "-",
+                    miktar=miktar,
+                    birim=k["birim"],
+                    birim_fiyat=birim_fiyat,
+                    toplam_tutar=toplam_tutar
+                )
+                db.session.add(yeni_detay)
+                
+            db.session.commit()
+            return jsonify({"durum": "basarili", "mesaj": "Fiş başarıyla güncellendi."})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+
+    # GET: Sayfayı render et
+    cariler = Cari.query.order_by(Cari.firma_adi).all()
+    fabrikalar = Fabrika.query.order_by(Fabrika.firma_adi).all()
+
+    # SQLAlchemy objelerini JSON serializable listeye çevir
+    detaylar_list = []
+    for d in fis.detaylar:
+        detaylar_list.append({
+            "agac_cinsi": d.agac_cinsi,
+            "cap": d.cap,
+            "miktar": d.miktar,
+            "birim": d.birim,
+            "birim_fiyat": d.birim_fiyat,
+            "toplam_tutar": d.toplam_tutar
+        })
+    
+    return render_template(
+        "fis_duzenle.html",
+        fis=fis,
+        detaylar_list=detaylar_list,
+        agac_cinsleri=AGAC_CINSLERI,
+        capler=CAPLER,
+        birimler=BIRIMLER,
+        cariler=cariler,
+        fabrikalar=fabrikalar
+    )
 
 
 # ─── Kartlar (Cari & Fabrika) Route'ları ───

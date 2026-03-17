@@ -16,9 +16,9 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Tarih</th>
-                <th>Cari</th>
-                <th>Fabrika</th>
+                <th onclick="sortTable(1)" style="cursor:pointer;"><i class="bi bi-sort-down me-1"></i>Tarih</th>
+                <th onclick="sortTable(2)" style="cursor:pointer;"><i class="bi bi-sort-alpha-down me-1"></i>Cari</th>
+                <th onclick="sortTable(3)" style="cursor:pointer;"><i class="bi bi-sort-alpha-down me-1"></i>Fabrika</th>
                 <th>Plaka No</th>
                 <th>Kalem</th>
                 <th class="text-center">İşlemler</th>
@@ -38,17 +38,26 @@
                     </span>
                 </td>
                 <td class="text-center">
-                    <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-sm btn-ma-accent me-1">
-                        <i class="bi bi-eye-fill"></i> Detay
-                    </a>
-                    <button type="button"
-                            class="btn btn-sm btn-ma-danger"
-                            data-bs-toggle="modal"
-                            data-bs-target="#silModal"
-                            data-sil-url="{{ url_for('fis_sil', fis_id=fis.id) }}"
-                            data-fis-id="{{ fis.id }}">
-                        <i class="bi bi-trash3-fill"></i>
-                    </button>
+                    <div class="d-flex justify-content-center gap-1">
+                        <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-sm btn-ma-accent" title="Detay">
+                            <i class="bi bi-eye-fill"></i>
+                        </a>
+                        <a href="{{ url_for('fis_duzenle', fis_id=fis.id) }}" class="btn btn-sm btn-ma-info-subtle text-info" title="Düzenle">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a href="{{ url_for('tek_fis_excel', fis_id=fis.id) }}" class="btn btn-sm btn-ma-success-subtle text-success" title="Excel İndir">
+                            <i class="bi bi-file-earmark-excel-fill"></i>
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-ma-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#silModal"
+                                data-sil-url="{{ url_for('fis_sil', fis_id=fis.id) }}"
+                                data-fis-id="{{ fis.id }}"
+                                title="Sil">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
@@ -82,18 +91,28 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2 mt-3">
-                <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-ma-accent w-100 py-3 fw-bold fs-5">
-                    <i class="bi bi-eye-fill me-2"></i> Detay
-                </a>
-                <button type="button"
-                        class="btn btn-ma-danger w-100 py-3 fw-bold fs-5"
-                        data-bs-toggle="modal"
-                        data-bs-target="#silModal"
-                        data-sil-url="{{ url_for('fis_sil', fis_id=fis.id) }}"
-                        data-fis-id="{{ fis.id }}">
-                    <i class="bi bi-trash3-fill me-2"></i> Sil
-                </button>
+            <div class="d-flex flex-column gap-2 mt-3">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('fis_detay', fis_id=fis.id) }}" class="btn btn-ma-accent w-100 py-3 fw-bold fs-5">
+                        <i class="bi bi-eye-fill me-2"></i> Detay
+                    </a>
+                    <a href="{{ url_for('fis_duzenle', fis_id=fis.id) }}" class="btn btn-ma-info-subtle text-info w-100 py-3 fw-bold fs-5">
+                        <i class="bi bi-pencil-square me-2"></i> Düzenle
+                    </a>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('tek_fis_excel', fis_id=fis.id) }}" class="btn btn-ma-success-subtle text-success w-100 py-2 fw-bold">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i> Excel
+                    </a>
+                    <button type="button"
+                            class="btn btn-ma-danger w-100 py-2 fw-bold"
+                            data-bs-toggle="modal"
+                            data-bs-target="#silModal"
+                            data-sil-url="{{ url_for('fis_sil', fis_id=fis.id) }}"
+                            data-fis-id="{{ fis.id }}">
+                        <i class="bi bi-trash3-fill me-2"></i> Sil
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -150,5 +169,49 @@
         document.getElementById('silOnayBtn').href = url;
         document.getElementById('silModalFisNo').textContent = '#' + fisId;
     });
+
+    // ─── Tablo Sıralama (Vanilla JS) ───
+    let currentSort = { index: -1, dir: 'desc' };
+
+    function sortTable(n) {
+        const table = document.querySelector(".table-ma");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        
+        let dir = 'asc';
+        if (currentSort.index === n && currentSort.dir === 'asc') {
+            dir = 'desc';
+        }
+        currentSort = { index: n, dir: dir };
+
+        rows.sort((a, b) => {
+            let x = a.getElementsByTagName("TD")[n].textContent.trim();
+            let y = b.getElementsByTagName("TD")[n].textContent.trim();
+            
+            // ID değerleri (İkincil Sıralama için)
+            let idA = parseInt(a.getElementsByTagName("TD")[0].textContent.trim());
+            let idB = parseInt(b.getElementsByTagName("TD")[0].textContent.trim());
+
+            let comparison = 0;
+
+            if (n === 1) { // Tarih (dd.mm.yyyy)
+                const dateA = new Date(x.split('.').reverse().join('-'));
+                const dateB = new Date(y.split('.').reverse().join('-'));
+                comparison = dateA - dateB;
+            } else { // Metin (Cari, Fabrika)
+                comparison = x.localeCompare(y, 'tr');
+            }
+
+            // Değerler eşitse ID'ye göre azalan sırala (Yeni kayıt üstte)
+            if (comparison === 0) {
+                return idB - idA;
+            }
+
+            return dir === 'asc' ? comparison : -comparison;
+        });
+
+        // Yeniden DOM'a ekle
+        rows.forEach(row => tbody.appendChild(row));
+    }
 </script>
 {% endblock %}

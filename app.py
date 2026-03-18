@@ -900,8 +900,8 @@ def rapor_indir_pdf():
         </div>
 
         <div class="filter-info">
-            Kapsam: {{baslangic if baslangic else 'Tümü'}} - {{bitis if bitis else 'Tümü'}} <br>
-            Cari: {{cari_adi if cari_adi else 'Tümü'}} | Fabrika: {{fabrika_adi if fabrika_adi else 'Tümü'}}
+            Kapsam: {baslangic if baslangic else 'Tümü'} - {bitis if bitis else 'Tümü'} <br>
+            Cari: {cari_adi if cari_adi else 'Tümü'} | Fabrika: {fabrika_adi if fabrika_adi else 'Tümü'}
         </div>
 
         <table class="items-table">
@@ -929,18 +929,18 @@ def rapor_indir_pdf():
         toplam_genel += res.toplam_tutar
         tarih_format = res.tarih.strftime('%d.%m.%Y')
         html_content += f"""
-            <tr {{row_class}}>
-                <td>{{res.id}}</td>
-                <td>{{tarih_format}}</td>
-                <td>{{res.sevk_eden_cari}}</td>
-                <td>{{res.sevk_yeri_fabrika}}</td>
-                <td>{{res.plaka_no}}</td>
-                <td>{{res.agac_cinsi}}</td>
-                <td>{{res.cap}}</td>
-                <td>{{res.miktar}}</td>
-                <td>{{res.birim}}</td>
-                <td>{{res.birim_fiyat}}</td>
-                <td style="font-weight: bold;">{{res.toplam_tutar:.2f}}</td>
+            <tr {row_class}>
+                <td>{res.id}</td>
+                <td>{tarih_format}</td>
+                <td>{res.sevk_eden_cari}</td>
+                <td>{res.sevk_yeri_fabrika}</td>
+                <td>{res.plaka_no}</td>
+                <td>{res.agac_cinsi}</td>
+                <td>{res.cap}</td>
+                <td>{res.miktar}</td>
+                <td>{res.birim}</td>
+                <td>{res.birim_fiyat}</td>
+                <td style="font-weight: bold;">{res.toplam_tutar:.2f}</td>
             </tr>
         """
         
@@ -949,13 +949,13 @@ def rapor_indir_pdf():
             <tfoot>
                 <tr style="font-weight: bold; background-color: #eee;">
                     <td colspan="10" style="text-align: right; padding: 10px;">Genel Rapor Toplamı:</td>
-                    <td style="text-align: center; padding: 10px;">{{toplam_genel:.2f}} ₺</td>
+                    <td style="text-align: center; padding: 10px;">{toplam_genel:.2f} ₺</td>
                 </tr>
             </tfoot>
         </table>
 
         <div class="footer">
-            <p>Oluşturma Tarihi: {{datetime.now().strftime('%d.%m.%Y %H:%M')}}</p>
+            <p>Oluşturma Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}</p>
         </div>
     </body>
     </html>

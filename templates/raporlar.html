@@ -53,9 +53,15 @@
         <button onclick="raporHizliIndir('son_ay')" class="rapor-hizli-btn" id="btn-sonay">
             <i class="bi bi-calendar-month"></i> Son Ay
         </button>
-        <button onclick="raporHizliIndir('tumu')" class="rapor-hizli-btn rapor-hizli-btn-tumu" id="btn-tumu">
-            <i class="bi bi-cloud-download"></i> Tümünü İndir
-        </button>
+        <div class="dropdown">
+            <button class="rapor-hizli-btn rapor-hizli-btn-tumu w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-tumu">
+                <i class="bi bi-cloud-download"></i> Tümünü İndir
+            </button>
+            <ul class="dropdown-menu shadow-sm border-0">
+                <li><button class="dropdown-item" onclick="raporHizliIndir('tumu', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
+                <li><button class="dropdown-item" onclick="raporHizliIndir('tumu', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
+            </ul>
+        </div>
     </div>
 </div>
 
@@ -77,9 +83,15 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-yil" onclick="raporIndir('yil')">
-                        <i class="bi bi-download me-1"></i>İndir
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-yil">
+                            <i class="bi bi-download me-1"></i>Raporu İndir
+                        </button>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><button class="dropdown-item" onclick="raporIndir('yil', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
+                            <li><button class="dropdown-item" onclick="raporIndir('yil', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -105,9 +117,15 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-ay" onclick="raporIndir('ay')">
-                        <i class="bi bi-download me-1"></i>İndir
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-ay">
+                            <i class="bi bi-download me-1"></i>Raporu İndir
+                        </button>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><button class="dropdown-item" onclick="raporIndir('ay', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
+                            <li><button class="dropdown-item" onclick="raporIndir('ay', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,9 +157,15 @@
                             <!-- JS ile doldurulacak -->
                         </select>
                     </div>
-                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-hafta" onclick="raporIndir('hafta')">
-                        <i class="bi bi-download me-1"></i>İndir
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-hafta">
+                            <i class="bi bi-download me-1"></i>Raporu İndir
+                        </button>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><button class="dropdown-item" onclick="raporIndir('hafta', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
+                            <li><button class="dropdown-item" onclick="raporIndir('hafta', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -159,9 +183,15 @@
                         <label class="form-label" for="input-bitis">Bitiş</label>
                         <input type="date" class="form-control" id="input-bitis" value="{{ bugun }}">
                     </div>
-                    <button class="btn btn-ma-primary rapor-indir-btn" id="btn-indir-ozel" onclick="raporIndir('ozel')">
-                        <i class="bi bi-download me-1"></i>İndir
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-ozel">
+                            <i class="bi bi-download me-1"></i>Raporu İndir
+                        </button>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><button class="dropdown-item" onclick="raporIndir('ozel', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
+                            <li><button class="dropdown-item" onclick="raporIndir('ozel', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -172,6 +202,7 @@
 {% block scripts %}
 <script>
     const RAPOR_INDIR_URL = "{{ url_for('rapor_indir') }}";
+    const RAPOR_INDIR_PDF_URL = "{{ url_for('rapor_indir_pdf') }}";
     const TURKCE_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
         "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
@@ -180,13 +211,15 @@
                "&fabrika_adi=" + encodeURIComponent(document.getElementById("filter-fabrika").value);
     }
 
-    function raporHizliIndir(filtre) {
-        let url = RAPOR_INDIR_URL + "?filtre=" + filtre + getFirmaFiltreleri();
+    function raporHizliIndir(filtre, format = 'excel') {
+        const baseUrl = (format === 'pdf') ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
+        let url = baseUrl + "?filtre=" + filtre + getFirmaFiltreleri();
         window.location.href = url;
     }
 
-    function raporIndir(tip) {
-        let url = RAPOR_INDIR_URL + "?filtre=";
+    function raporIndir(tip, format = 'excel') {
+        const baseUrl = (format === 'pdf') ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
+        let url = baseUrl + "?filtre=";
 
         if (tip === "yil") {
             const yil = document.getElementById("select-yil").value;

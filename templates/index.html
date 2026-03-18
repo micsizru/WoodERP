@@ -11,61 +11,36 @@
 <div class="row g-4">
 
     <!-- ── Sol Kolon (8/12) ── -->
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-8 order-first">
 
-        <!-- İstatistik Kartları -->
-        <div class="row g-3 mb-4">
-            <div class="col-6">
-                <div class="stat-card card h-100 border-0">
-                    <div class="card-body p-4">
-                        <div class="stat-icon" style="background: rgba(27, 94, 32, 0.1); color: var(--ma-primary);">
-                            <i class="bi bi-receipt-cutoff"></i>
-                        </div>
-                        <div class="stat-value text-success h2 fw-bold mb-1">{{ toplam_fis }}</div>
-                        <div class="stat-label text-muted fw-medium">Toplam Fiş</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="stat-card card h-100 border-0">
-                    <div class="card-body p-4">
-                        <div class="stat-icon" style="background: rgba(121, 85, 72, 0.1); color: var(--ma-accent);">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                        <div class="stat-value h2 fw-bold mb-1" style="color: var(--ma-accent);">{{ toplam_kalem }}</div>
-                        <div class="stat-label text-muted fw-medium">Toplam Kalem</div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Hızlı İşlemler -->
         <h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı İşlemler</h5>
         <div class="row g-3">
             <div class="col-12 col-sm-4">
-                <a href="{{ url_for('yeni_fis_formu') }}" class="action-card card h-100 text-decoration-none transition">
-                    <div class="card-body text-center p-4">
-                        <div class="display-5 mb-2">📝</div>
-                        <div class="action-title fw-bold text-dark">Yeni Fiş Oluştur</div>
-                        <p class="small text-muted mb-0">Sevkiyat girişi yapın</p>
+                <a href="{{ url_for('yeni_fis_formu') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
+                    <div class="card-body text-center p-5">
+                        <div class="display-4 mb-3">📝</div>
+                        <div class="action-title fw-bold text-dark fs-5">Yeni Fiş Oluştur</div>
+                        <p class="text-muted mb-0">Sevkiyat girişi yapın</p>
                     </div>
                 </a>
             </div>
             <div class="col-12 col-sm-4">
-                <a href="{{ url_for('fisleri_goruntule') }}" class="action-card card h-100 text-decoration-none transition">
-                    <div class="card-body text-center p-4">
-                        <div class="display-5 mb-2">📋</div>
-                        <div class="action-title fw-bold text-dark">Fişleri Görüntüle</div>
-                        <p class="small text-muted mb-0">Kayıtları inceleyin</p>
+                <a href="{{ url_for('fisleri_goruntule') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
+                    <div class="card-body text-center p-5">
+                        <div class="display-4 mb-3">📋</div>
+                        <div class="action-title fw-bold text-dark fs-5">Fişleri Görüntüle</div>
+                        <p class="text-muted mb-0">Kayıtları inceleyin</p>
                     </div>
                 </a>
             </div>
             <div class="col-12 col-sm-4">
-                <a href="{{ url_for('raporlar') }}" class="action-card card h-100 text-decoration-none transition">
-                    <div class="card-body text-center p-4">
-                        <div class="display-5 mb-2">📊</div>
-                        <div class="action-title fw-bold text-dark">Rapor Sorgula</div>
-                        <p class="small text-muted mb-0">Excel rapor hazırlayın</p>
+                <a href="{{ url_for('raporlar') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
+                    <div class="card-body text-center p-5">
+                        <div class="display-4 mb-3">📊</div>
+                        <div class="action-title fw-bold text-dark fs-5">Rapor Sorgula</div>
+                        <p class="text-muted mb-0">Excel rapor hazırlayın</p>
                     </div>
                 </a>
             </div>

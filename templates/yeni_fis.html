@@ -54,16 +54,16 @@
 <!-- ─── Detay Satırları ─── -->
 <div class="form-section">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="form-section-title mb-0 border-0 pb-0"><i class="bi bi-list-check me-2"></i>Kalem Satırları</div>
+        <div class="form-section-title mb-0 border-0 pb-0"><i class="bi bi-list-check me-2"></i>Sevk Edilen Odun Cinsi</div>
         <button type="button" class="btn btn-ma-primary" id="btnKalemEkle" onclick="kalemEkle()">
-            <i class="bi bi-plus-lg me-1"></i> Kalem Ekle
+            <i class="bi bi-plus-lg me-1"></i> Sevk Edilen Odun Cinsi Ekle
         </button>
     </div>
     <div id="kalemlerContainer">
         <!-- Dinamik satırlar buraya eklenir -->
     </div>
     <div id="kalemUyari" class="text-muted text-center py-3" style="display:block;">
-        <i class="bi bi-info-circle me-1"></i> "Kalem Ekle" butonuna tıklayarak ağaç cinsi ve ölçü satırları ekleyin.
+        <i class="bi bi-info-circle me-1"></i> "Sevk Edilen Odun Cinsi Ekle" butonuna tıklayarak ağaç cinsi ve ölçü satırları ekleyin.
     </div>
 </div>
 
@@ -125,7 +125,7 @@
         div.className = 'kalem-satiri';
         div.id = `kalem-${kalemSayaci}`;
         div.innerHTML = `
-            <span class="kalem-no">Kalem ${kalemSayaci}</span>
+            <span class="kalem-no">Sevk Edilen Odun Cinsi ${kalemSayaci}</span>
             <button type="button" class="btn-sil-kalem" onclick="kalemSil(${kalemSayaci})">
                 <i class="bi bi-x-lg"></i> Sil
             </button>

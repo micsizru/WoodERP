@@ -769,13 +769,12 @@ def rapor_indir():
     if baslangic and bitis:
         sorgu = sorgu.filter(Fis.tarih >= baslangic, Fis.tarih <= bitis)
 
-    # Cari filtresi
-    if cari_adi:
-        sorgu = sorgu.filter(Fis.sevk_eden_cari == cari_adi)
-    
-    # Fabrika filtresi
-    if fabrika_adi:
-        sorgu = sorgu.filter(Fis.sevk_yeri_fabrika == fabrika_adi)
+    # FİRMA FİLTRELERİ (God Mode değilse her durumda uygulanmalı)
+    if filtre != 'god_mode':
+        if cari_adi:
+            sorgu = sorgu.filter(Fis.sevk_eden_cari == cari_adi)
+        if fabrika_adi:
+            sorgu = sorgu.filter(Fis.sevk_yeri_fabrika == fabrika_adi)
 
     sonuclar = sorgu.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
 
@@ -869,10 +868,13 @@ def rapor_indir_pdf():
 
     if baslangic and bitis:
         sorgu = sorgu.filter(Fis.tarih >= baslangic, Fis.tarih <= bitis)
-    if cari_adi:
-        sorgu = sorgu.filter(Fis.sevk_eden_cari == cari_adi)
-    if fabrika_adi:
-        sorgu = sorgu.filter(Fis.sevk_yeri_fabrika == fabrika_adi)
+
+    # FİRMA FİLTRELERİ (God Mode değilse query'e ekle)
+    if filtre != 'god_mode':
+        if cari_adi:
+            sorgu = sorgu.filter(Fis.sevk_eden_cari == cari_adi)
+        if fabrika_adi:
+            sorgu = sorgu.filter(Fis.sevk_yeri_fabrika == fabrika_adi)
 
     sonuclar = sorgu.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
 

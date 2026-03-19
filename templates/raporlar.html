@@ -1,198 +1,209 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- ─── Page Header ─── -->
-<div class="page-header text-center">
-    <h2><i class="bi bi-bar-chart-line-fill me-2"></i>Rapor Sorgulama</h2>
-</div>
+<div class="container-fluid py-4">
 
-<!-- ─── Gelişmiş Filtre Seçenekleri ─── -->
-<div class="form-section mb-4">
-    <div class="form-section-title"><i class="bi bi-funnel-fill text-primary me-1"></i>Firma Filtreleri</div>
-    <div class="row g-3">
-        <div class="col-12 col-md-6">
-            <label class="form-label fw-bold small" for="filter-cari">Cari Seçin</label>
-            <select class="form-select border-primary shadow-sm" id="filter-cari">
-                <option value="">-- Tüm Cariler --</option>
-                {% for c in cariler %}
-                <option value="{{ c.firma_adi }}">{{ c.firma_adi }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-12 col-md-6">
-            <label class="form-label fw-bold small" for="filter-fabrika">Fabrika Seçin</label>
-            <select class="form-select border-info shadow-sm" id="filter-fabrika">
-                <option value="">-- Tüm Fabrikalar --</option>
-                {% for f in fabrikalar %}
-                <option value="{{ f.firma_adi }}">{{ f.firma_adi }}</option>
-                {% endfor %}
-            </select>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h2 class="h3 mb-0"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Rapor Sorgulama Merkezi</h2>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0 rounded-4">
+        <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="mb-3 mb-md-0">
+                <h5 class="card-title text-primary mb-0"><i class="bi bi-cloud-download-fill me-2"></i>Tüm Zamanları İndir</h5>
+            </div>
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-success px-4" onclick="raporHizliIndir('god_mode', 'excel')">
+                    <i class="bi bi-file-earmark-excel-fill me-2"></i>Excel İndir
+                </button>
+                <button class="btn btn-danger px-4" onclick="raporHizliIndir('god_mode', 'pdf')">
+                    <i class="bi bi-filetype-pdf me-2"></i>PDF İndir
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- ─── Hızlı Filtreler ─── -->
-<div class="form-section mb-4">
-    <div class="form-section-title"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı Zaman Filtreleri</div>
-    <div class="rapor-hizli-grid">
-        <button onclick="raporHizliIndir('bugun')" class="rapor-hizli-btn" id="btn-bugun">
-            <i class="bi bi-calendar-day"></i> Bugün
-        </button>
-        <button onclick="raporHizliIndir('son_3_gun')" class="rapor-hizli-btn" id="btn-son3gun">
-            <i class="bi bi-calendar3"></i> Son 3 Gün
-        </button>
-        <button onclick="raporHizliIndir('son_hafta')" class="rapor-hizli-btn" id="btn-sonhafta">
-            <i class="bi bi-calendar-week"></i> Son Hafta
-        </button>
-        <button onclick="raporHizliIndir('bu_hafta')" class="rapor-hizli-btn" id="btn-buhafta">
-            <i class="bi bi-calendar2-week"></i> Bu Hafta
-        </button>
-        <button onclick="raporHizliIndir('onceki_hafta')" class="rapor-hizli-btn" id="btn-oncekihafta">
-            <i class="bi bi-calendar2-minus"></i> Önceki Hafta
-        </button>
-        <button onclick="raporHizliIndir('son_ay')" class="rapor-hizli-btn" id="btn-sonay">
-            <i class="bi bi-calendar-month"></i> Son Ay
-        </button>
-        <div class="dropdown">
-            <button class="rapor-hizli-btn rapor-hizli-btn-tumu w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-tumu">
-                <i class="bi bi-cloud-download"></i> Tümünü İndir
-            </button>
-            <ul class="dropdown-menu shadow-sm border-0">
-                <li><button class="dropdown-item" onclick="raporHizliIndir('tumu', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
-                <li><button class="dropdown-item" onclick="raporHizliIndir('tumu', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
-            </ul>
+    <div class="card shadow-sm mb-4 border-0 rounded-4">
+        <div class="card-header bg-white py-3 border-bottom-0" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Hızlı Raporlar</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% set hizli_filtreler = [
+                    ('bugun', 'Bugün', 'bi-calendar-day'),
+                    ('son_3_gun', 'Son 3 Gün', 'bi-calendar3'),
+                    ('son_hafta', 'Son Hafta', 'bi-calendar-week'),
+                    ('bu_hafta', 'Bu Hafta', 'bi-calendar2-week'),
+                    ('onceki_hafta', 'Önceki Hafta', 'bi-calendar2-minus'),
+                    ('son_ay', 'Son Ay', 'bi-calendar-month')
+                ] %}
+                
+                {% for kod, etiket, ikon in hizli_filtreler %}
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="dropdown d-grid">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi {{ ikon }} me-1"></i> {{ etiket }}
+                        </button>
+                        <ul class="dropdown-menu shadow w-100 border-0 text-center rounded-3">
+                            <li><button class="dropdown-item py-2" onclick="raporHizliIndir('{{ kod }}', 'excel')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i>Excel</button></li>
+                            <li><button class="dropdown-item py-2" onclick="raporHizliIndir('{{ kod }}', 'pdf')"><i class="bi bi-filetype-pdf text-danger me-2"></i>PDF</button></li>
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
-</div>
 
-<!-- ─── Detaylı Sorgulama ─── -->
-<div class="form-section mb-4">
-    <div class="form-section-title"><i class="bi bi-search me-1"></i>Detaylı Tarih Sorgulama</div>
-
-    <div class="row g-3">
-        <!-- Yıl Raporu -->
-        <div class="col-12 col-md-6">
-            <div class="rapor-detay-card" id="card-yil">
-                <div class="rapor-detay-baslik"><i class="bi bi-calendar-range me-1"></i>Yıl Raporu</div>
-                <div class="d-flex gap-2 align-items-end">
-                    <div class="flex-grow-1">
-                        <label class="form-label" for="select-yil">Yıl</label>
-                        <select class="form-select" id="select-yil">
-                            {% for yil in yillar %}
-                            <option value="{{ yil }}">{{ yil }}</option>
+    <div class="card shadow-sm mb-4 border-top border-primary border-3 rounded-4">
+        <div class="card-header bg-white py-3 border-bottom-0" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-funnel-fill text-primary me-2"></i>Detaylı Raporlama ve Firma Filtreleri</h6>
+        </div>
+        <div class="card-body px-4 pb-4">
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold" for="filter-cari">Cari Filtresi</label>
+                    <div class="input-group shadow-sm rounded-3">
+                        <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="bi bi-person-badge"></i></span>
+                        <select class="form-select border-start-0 rounded-end-3" id="filter-cari">
+                            <option value="">-- Tüm Cariler --</option>
+                            {% for c in cariler %}
+                            <option value="{{ c.firma_adi }}">{{ c.firma_adi }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="dropdown">
-                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-yil">
-                            <i class="bi bi-download me-1"></i>Raporu İndir
-                        </button>
-                        <ul class="dropdown-menu shadow-sm border-0">
-                            <li><button class="dropdown-item" onclick="raporIndir('yil', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
-                            <li><button class="dropdown-item" onclick="raporIndir('yil', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
-                        </ul>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold" for="filter-fabrika">Fabrika Filtresi</label>
+                    <div class="input-group shadow-sm rounded-3">
+                        <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="bi bi-factory"></i></span>
+                        <select class="form-select border-start-0 rounded-end-3" id="filter-fabrika">
+                            <option value="">-- Tüm Fabrikalar --</option>
+                            {% for f in fabrikalar %}
+                            <option value="{{ f.firma_adi }}">{{ f.firma_adi }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Ay Raporu -->
-        <div class="col-12 col-md-6">
-            <div class="rapor-detay-card" id="card-ay">
-                <div class="rapor-detay-baslik"><i class="bi bi-calendar-month me-1"></i>Ay Raporu</div>
-                <div class="d-flex gap-2 align-items-end">
-                    <div>
-                        <label class="form-label" for="select-ay-yil">Yıl</label>
-                        <select class="form-select" id="select-ay-yil">
-                            {% for yil in yillar %}
-                            <option value="{{ yil }}">{{ yil }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="flex-grow-1">
-                        <label class="form-label" for="select-ay">Ay</label>
-                        <select class="form-select" id="select-ay">
-                            {% for i in range(1, 13) %}
-                            <option value="{{ i }}">{{ aylar[i] }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-ay">
-                            <i class="bi bi-download me-1"></i>Raporu İndir
-                        </button>
-                        <ul class="dropdown-menu shadow-sm border-0">
-                            <li><button class="dropdown-item" onclick="raporIndir('ay', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
-                            <li><button class="dropdown-item" onclick="raporIndir('ay', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
-                        </ul>
+            <hr class="text-muted mb-4 opacity-25">
+
+            <h6 class="mb-3 fw-bold text-secondary"><i class="bi bi-search me-2"></i>Zaman Bazlı Sorgulamalar</h6>
+            <div class="row g-4">
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light rounded-4">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-primary fw-bold"><i class="bi bi-calendar-range me-2"></i>Yıl Raporu</h6>
+                            <div class="mt-auto pt-3">
+                                <label class="form-label small text-muted" for="select-yil">Yıl Seçimi</label>
+                                <div class="input-group shadow-sm rounded-3">
+                                    <select class="form-select rounded-start-3" id="select-yil">
+                                        {% for yil in yillar %}
+                                        <option value="{{ yil }}">{{ yil }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-outline-success border-start-0" onclick="raporIndir('yil', 'excel')" title="Excel İndir"><i class="bi bi-file-earmark-excel-fill"></i></button>
+                                    <button class="btn btn-outline-danger rounded-end-3" onclick="raporIndir('yil', 'pdf')" title="PDF İndir"><i class="bi bi-filetype-pdf"></i></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Hafta Raporu -->
-        <div class="col-12 col-md-6">
-            <div class="rapor-detay-card" id="card-hafta">
-                <div class="rapor-detay-baslik"><i class="bi bi-calendar-week me-1"></i>Hafta Raporu</div>
-                <div class="d-flex gap-2 align-items-end flex-wrap">
-                    <div>
-                        <label class="form-label" for="select-hafta-yil">Yıl</label>
-                        <select class="form-select" id="select-hafta-yil" onchange="haftalariGuncelle()">
-                            {% for yil in yillar %}
-                            <option value="{{ yil }}">{{ yil }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="form-label" for="select-hafta-ay">Ay</label>
-                        <select class="form-select" id="select-hafta-ay" onchange="haftalariGuncelle()">
-                            {% for i in range(1, 13) %}
-                            <option value="{{ i }}">{{ aylar[i] }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="flex-grow-1">
-                        <label class="form-label" for="select-hafta-no">Hafta</label>
-                        <select class="form-select" id="select-hafta-no">
-                            <!-- JS ile doldurulacak -->
-                        </select>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-hafta">
-                            <i class="bi bi-download me-1"></i>Raporu İndir
-                        </button>
-                        <ul class="dropdown-menu shadow-sm border-0">
-                            <li><button class="dropdown-item" onclick="raporIndir('hafta', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
-                            <li><button class="dropdown-item" onclick="raporIndir('hafta', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
-                        </ul>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light rounded-4">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-primary fw-bold"><i class="bi bi-calendar-month me-2"></i>Ay Raporu</h6>
+                            <div class="mt-auto pt-3">
+                                <label class="form-label small text-muted">Yıl ve Ay Seçimi</label>
+                                <div class="input-group shadow-sm rounded-3">
+                                    <select class="form-select rounded-start-3" id="select-ay-yil" style="max-width: 40%;">
+                                        {% for yil in yillar %}
+                                        <option value="{{ yil }}">{{ yil }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select class="form-select" id="select-ay">
+                                        {% for i in range(1, 13) %}
+                                        <option value="{{ i }}">{{ aylar[i] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-outline-success border-start-0" onclick="raporIndir('ay', 'excel')" title="Excel İndir"><i class="bi bi-file-earmark-excel-fill"></i></button>
+                                    <button class="btn btn-outline-danger rounded-end-3" onclick="raporIndir('ay', 'pdf')" title="PDF İndir"><i class="bi bi-filetype-pdf"></i></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Tarih Aralığı -->
-        <div class="col-12 col-md-6">
-            <div class="rapor-detay-card" id="card-ozel">
-                <div class="rapor-detay-baslik"><i class="bi bi-calendar2-range me-1"></i>Tarih Aralığı</div>
-                <div class="d-flex gap-2 align-items-end flex-wrap">
-                    <div class="flex-grow-1">
-                        <label class="form-label" for="input-baslangic">Başlangıç</label>
-                        <input type="date" class="form-control" id="input-baslangic" value="{{ bugun }}">
-                    </div>
-                    <div class="flex-grow-1">
-                        <label class="form-label" for="input-bitis">Bitiş</label>
-                        <input type="date" class="form-control" id="input-bitis" value="{{ bugun }}">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-ma-primary rapor-indir-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-indir-ozel">
-                            <i class="bi bi-download me-1"></i>Raporu İndir
-                        </button>
-                        <ul class="dropdown-menu shadow-sm border-0">
-                            <li><button class="dropdown-item" onclick="raporIndir('ozel', 'excel')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</button></li>
-                            <li><button class="dropdown-item" onclick="raporIndir('ozel', 'pdf')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</button></li>
-                        </ul>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light rounded-4">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-primary fw-bold"><i class="bi bi-calendar2-range me-2"></i>Tarih Aralığı</h6>
+                            <div class="mt-auto pt-3">
+                                <div class="input-group input-group-sm mb-2 shadow-sm rounded-3">
+                                    <span class="input-group-text bg-white rounded-start-3" style="width: 70px;">Başlangıç</span>
+                                    <input type="date" class="form-control rounded-end-3" id="input-baslangic" value="{{ bugun }}">
+                                </div>
+                                <div class="input-group input-group-sm mb-2 shadow-sm rounded-3">
+                                    <span class="input-group-text bg-white rounded-start-3" style="width: 70px;">Bitiş</span>
+                                    <input type="date" class="form-control rounded-end-3" id="input-bitis" value="{{ bugun }}">
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-success w-50 rounded-3" onclick="raporIndir('ozel', 'excel')"><i class="bi bi-file-earmark-excel-fill me-1"></i> Excel</button>
+                                    <button class="btn btn-sm btn-outline-danger w-50 rounded-3" onclick="raporIndir('ozel', 'pdf')"><i class="bi bi-filetype-pdf me-1"></i> PDF</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light rounded-4">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-primary fw-bold"><i class="bi bi-calendar-week me-2"></i>Hafta Raporu</h6>
+                            <div class="mt-auto pt-3">
+                                <div class="d-flex gap-1 mb-2">
+                                    <select class="form-select form-select-sm shadow-sm rounded-3" id="select-hafta-yil" onchange="haftalariGuncelle()">
+                                        {% for yil in yillar %}
+                                        <option value="{{ yil }}">{{ yil }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select class="form-select form-select-sm shadow-sm rounded-3" id="select-hafta-ay" onchange="haftalariGuncelle()">
+                                        {% for i in range(1, 13) %}
+                                        <option value="{{ i }}">{{ aylar[i] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-group input-group-sm shadow-sm rounded-3">
+                                    <select class="form-select rounded-start-3" id="select-hafta-no"></select>
+                                    <button class="btn btn-outline-success border-start-0" onclick="raporIndir('hafta', 'excel')" title="Excel İndir"><i class="bi bi-file-earmark-excel-fill"></i></button>
+                                    <button class="btn btn-outline-danger rounded-end-3" onclick="raporIndir('hafta', 'pdf')" title="PDF İndir"><i class="bi bi-filetype-pdf"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-8">
+                    <div class="card h-100 shadow-sm border-success bg-success bg-opacity-10 rounded-4">
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                            <h6 class="card-title text-success fw-bold"><i class="bi bi-funnel-fill me-2"></i>Filtreli Tüm Zamanlar</h6>
+                            <p class="small text-success text-opacity-75 mb-3 px-md-4">  <strong>   </strong>   </p> <!-- burayı  iyi mogladım, eğer tasarımı sıçtırtmıyorsa değiştirmeye gerek yok. -->
+                            <div class="d-flex gap-3 w-100 justify-content-center" style="max-width: 400px;">
+                                <button class="btn btn-success w-50 shadow-sm rounded-3" onclick="raporIndir('tumu', 'excel')">
+                                    <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel Olarak
+                                </button>
+                                <button class="btn btn-danger w-50 shadow-sm rounded-3" onclick="raporIndir('tumu', 'pdf')">
+                                    <i class="bi bi-filetype-pdf me-1"></i> PDF Olarak
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -203,48 +214,52 @@
 <script>
     const RAPOR_INDIR_URL = "{{ url_for('rapor_indir') }}";
     const RAPOR_INDIR_PDF_URL = "{{ url_for('rapor_indir_pdf') }}";
-    const TURKCE_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    const TURKCE_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
     function getFirmaFiltreleri() {
-        return "&cari_adi=" + encodeURIComponent(document.getElementById("filter-cari").value) +
-               "&fabrika_adi=" + encodeURIComponent(document.getElementById("filter-fabrika").value);
+        return `&cari_adi=${encodeURIComponent(document.getElementById("filter-cari").value)}&fabrika_adi=${encodeURIComponent(document.getElementById("filter-fabrika").value)}`;
     }
 
     function raporHizliIndir(filtre, format = 'excel') {
-        const baseUrl = (format === 'pdf') ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
-        let url = baseUrl + "?filtre=" + filtre + getFirmaFiltreleri();
+        const baseUrl = format === 'pdf' ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
+        let url = `${baseUrl}?filtre=${filtre}`;
+        
+        if (filtre !== 'god_mode') {
+            url += getFirmaFiltreleri();
+        }
+        
         window.location.href = url;
     }
 
     function raporIndir(tip, format = 'excel') {
-        const baseUrl = (format === 'pdf') ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
-        let url = baseUrl + "?filtre=";
+        const baseUrl = format === 'pdf' ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
+        let url = `${baseUrl}?filtre=`;
 
-        if (tip === "yil") {
-            const yil = document.getElementById("select-yil").value;
-            url += "yil_" + yil;
+        if (tip === "tumu") {
+            url += "tumu";
+        } else if (tip === "yil") {
+            url += `yil_${document.getElementById("select-yil").value}`;
         } else if (tip === "ay") {
             const yil = document.getElementById("select-ay-yil").value;
             const ay = document.getElementById("select-ay").value.padStart(2, "0");
-            url += "ay_" + yil + "_" + ay;
+            url += `ay_${yil}_${ay}`;
         } else if (tip === "hafta") {
             const yil = document.getElementById("select-hafta-yil").value;
             const ay = document.getElementById("select-hafta-ay").value.padStart(2, "0");
             const haftaNo = document.getElementById("select-hafta-no").value;
-            url += "hafta_" + yil + "_" + ay + "_" + haftaNo;
+            url += `hafta_${yil}_${ay}_${haftaNo}`;
         } else if (tip === "ozel") {
             const baslangic = document.getElementById("input-baslangic").value;
             const bitis = document.getElementById("input-bitis").value;
             if (!baslangic || !bitis) {
-                alert("Lütfen başlangıç ve bitiş tarihlerini seçin.");
+                alert("Lütfen başlangıç ve bitiş tarihlerini tam seçin.");
                 return;
             }
             if (baslangic > bitis) {
                 alert("Başlangıç tarihi, bitiş tarihinden sonra olamaz.");
                 return;
             }
-            url += "ozel&baslangic=" + baslangic + "&bitis=" + bitis;
+            url += `ozel&baslangic=${baslangic}&bitis=${bitis}`;
         }
 
         url += getFirmaFiltreleri();
@@ -257,13 +272,10 @@
         const select = document.getElementById("select-hafta-no");
         select.innerHTML = "";
 
-        // Ayın ilk gününün pazartesisini bul
         const ayin1i = new Date(yil, ay - 1, 1);
-        const gun = ayin1i.getDay(); // 0=Pazar, 1=Pazartesi
+        const gun = ayin1i.getDay(); 
         let ilkPazartesiOffset = (gun === 0) ? 1 : (gun === 1) ? 0 : (8 - gun);
         let ilkPazartesi = new Date(yil, ay - 1, 1 + ilkPazartesiOffset);
-
-        // Ayın son gününü bul
         const sonGun = new Date(yil, ay, 0).getDate();
 
         let haftaNo = 1;
@@ -272,8 +284,7 @@
         while (tarih.getMonth() === ay - 1) {
             const pazartesiGun = tarih.getDate();
             const pazarGun = Math.min(pazartesiGun + 6, sonGun);
-            const etiket = haftaNo + ". Hafta (" + pazartesiGun + " " +
-                TURKCE_AYLAR[ay] + " – " + pazarGun + " " + TURKCE_AYLAR[ay] + ")";
+            const etiket = `${haftaNo}. Hafta (${pazartesiGun} ${TURKCE_AYLAR[ay]} – ${pazarGun} ${TURKCE_AYLAR[ay]})`;
 
             const opt = document.createElement("option");
             opt.value = haftaNo;
@@ -292,7 +303,6 @@
         }
     }
 
-    // Sayfa yüklendiğinde hafta listesini doldur
     document.addEventListener("DOMContentLoaded", haftalariGuncelle);
 </script>
 {% endblock %}

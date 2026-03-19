@@ -248,7 +248,7 @@
         // Kalem satırlarını topla
         const kalemDivler = document.querySelectorAll('.kalem-satiri');
         if (kalemDivler.length === 0) {
-            modalGoster(false, 'En az bir kalem satırı eklemelisiniz.');
+            modalGoster(false, 'En az bir sevk edilen odun cinsi satırı eklemelisiniz.');
             return;
         }
 
@@ -277,7 +277,7 @@
         });
 
         if (!gecerli || kalemler.length === 0) {
-            modalGoster(false, 'Lütfen tüm kalem satırlarında miktar ve birim fiyat değerlerini doğru girin.');
+            modalGoster(false, 'Lütfen tüm satırlarda miktar ve birim fiyat değerlerini doğru girin.');
             return;
         }
 

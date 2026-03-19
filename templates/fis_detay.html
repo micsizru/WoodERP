@@ -8,8 +8,7 @@
         <a href="{{ url_for('fisleri_goruntule') }}" class="btn btn-ma-outline">
             <i class="bi bi-arrow-left me-1"></i> Geri
         </a>
-        <button type="button" class="btn btn-ma-danger ms-1"
-                data-bs-toggle="modal" data-bs-target="#silModal">
+        <button type="button" class="btn btn-ma-danger ms-1" data-bs-toggle="modal" data-bs-target="#silModal">
             <i class="bi bi-trash3-fill me-1"></i> Sil
         </button>
     </div>
@@ -48,7 +47,7 @@
 
 <!-- ─── Kalem Detayları ─── -->
 <div class="form-section">
-    <div class="form-section-title"><i class="bi bi-list-check me-2"></i>Kalem Satırları ({{ fis.detaylar | length }})</div>
+    <div class="form-section-title"><i class="bi bi-list-check me-2"></i>Sevk Edilen Odun Cinsi (Satır {{ fis.detaylar|length }})</div>
     <div class="table-responsive">
         <table class="table table-ma table-hover mb-0">
             <thead>
@@ -98,7 +97,7 @@
             <div class="modal-body py-4 text-center">
                 <div style="font-size:2.5rem; margin-bottom:0.75rem;">🗑️</div>
                 <p class="mb-1 fs-6">
-                    <strong>#{{ fis.id }}</strong> numaralı fişi ve tüm kalem satırlarını silmek istediğinize emin misiniz?
+                    <strong>#{{ fis.id }}</strong> numaralı fişi ve tüm satırları silmek istediğinize emin misiniz?
                 </p>
                 <p class="text-muted small mb-0">Bu işlem geri alınamaz.</p>
             </div>

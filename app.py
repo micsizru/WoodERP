@@ -125,7 +125,10 @@ AGAC_CINSLERI = [
     "Diş Budak",
 ]
 
-CAPLER = ["-", "6cm altı", "6-15cm arası", "15 üstü"]
+#Burada daha fazla ağaç cinsi eklenebilir sonradan
+
+
+CAPLER = ["-", "6cm altı", "6-15cm arası", "15 üstü"] #Çaplar'ı capler olarak yazmış, tüm değişkenlerin adlarını değiştirmeye üşendim
 
 BIRIMLER = ["Ton", "Ster", "m³", "Kg"]
 
@@ -1029,3 +1032,8 @@ if __name__ == "__main__":
         db.create_all()
         check_and_update_tables()
     app.run(debug=True, host="0.0.0.0", port=5000)
+
+
+
+
+

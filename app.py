@@ -108,6 +108,41 @@ class Fabrika(db.Model):
         return f"<Fabrika {self.firma_kodu} - {self.firma_adi}>"
 
 
+class MevcutStok(db.Model):
+    __tablename__ = "mevcut_stok"
+    id = db.Column(db.Integer, primary_key=True)
+    cari_kodu = db.Column(db.String(20), db.ForeignKey('cari.firma_kodu'), nullable=False)
+    kalem = db.Column(db.String(100), nullable=False)
+    miktar = db.Column(db.Float, nullable=False, default=0.0)
+    birim = db.Column(db.String(20), nullable=False, default='Ton')
+    cari = db.relationship('Cari')
+
+
+class GelecekStok(db.Model):
+    __tablename__ = "gelecek_stok"
+    id = db.Column(db.Integer, primary_key=True)
+    cari_kodu = db.Column(db.String(20), db.ForeignKey('cari.firma_kodu'), nullable=False)
+    kalem = db.Column(db.String(100), nullable=False)
+    miktar = db.Column(db.Float, nullable=False, default=0.0)
+    birim = db.Column(db.String(20), nullable=False)
+    teslim_tarihi = db.Column(db.Date, nullable=False)
+    cari = db.relationship('Cari')
+
+
+class StokBildirim(db.Model):
+    __tablename__ = "stok_bildirim"
+    id = db.Column(db.Integer, primary_key=True)
+    tip = db.Column(db.String(20), nullable=False)
+    cari_kodu = db.Column(db.String(20), db.ForeignKey('cari.firma_kodu'), nullable=False)
+    kalem = db.Column(db.String(100), nullable=False)
+    islem_miktari = db.Column(db.Float, nullable=False)
+    birim = db.Column(db.String(20), nullable=False, default='Ton')
+    durum = db.Column(db.String(20), nullable=False, default='bekliyor')
+    fis_id = db.Column(db.Integer, nullable=True)
+    gelecek_stok_id = db.Column(db.Integer, nullable=True)
+    cari = db.relationship('Cari')
+
+
 # ───────────────────────── Sabit Dropdown Verileri ─────────────────────────
 
 AGAC_CINSLERI = [
@@ -232,6 +267,15 @@ def yeni_firma_kodu_uret(tur):
     return f"{prefix}{yeni_num:03d}"
 
 
+@app.context_processor
+def inject_bekleyen_bildirim():
+    try:
+        sayi = StokBildirim.query.filter_by(durum='bekliyor').count()
+    except Exception:
+        sayi = 0
+    return dict(bekleyen_bildirim_sayisi=sayi)
+
+
 # ───────────────────────── Route'lar ─────────────────────────
 
 @app.route("/")
@@ -284,6 +328,7 @@ def yeni_fis_kaydet():
 
         # Detay satırları
         kalemler = veri.get("kalemler", [])
+
         if not kalemler:
             return jsonify({"durum": "hata", "mesaj": "En az bir kalem satırı eklemelisiniz."}), 400
 
@@ -291,6 +336,7 @@ def yeni_fis_kaydet():
             miktar = float(k["miktar"])
             birim_fiyat = float(k["birim_fiyat"])
             toplam_tutar = round(miktar * birim_fiyat, 2)
+            k_stok_disi = k.get("stok_disi_birak", False)
 
             detay = FisDetayi(
                 fis_id=yeni_fis.id,
@@ -302,6 +348,21 @@ def yeni_fis_kaydet():
                 toplam_tutar=toplam_tutar,
             )
             db.session.add(detay)
+
+            # Stok düşüm bildirimi (Yarı-otomatik)
+            if not k_stok_disi:
+                cari_obj = Cari.query.filter_by(firma_adi=yeni_fis.sevk_eden_cari).first()
+                if cari_obj:
+                    bildirim = StokBildirim(
+                        tip='dusum',
+                        cari_kodu=cari_obj.firma_kodu,
+                        kalem=k["agac_cinsi"],
+                        islem_miktari=miktar,
+                        birim=k["birim"],
+                        durum='bekliyor',
+                        fis_id=yeni_fis.id
+                    )
+                    db.session.add(bildirim)
 
         db.session.commit()
         return jsonify({"durum": "basarili", "mesaj": "Fiş başarıyla kaydedildi.", "fis_id": yeni_fis.id})
@@ -961,9 +1022,6 @@ def rapor_indir_pdf():
 
         <div class="footer">
             <p>Oluşturma Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}</p>
-        </div>
-    </body>
-    </html>
     """
 
     options = {
@@ -989,8 +1047,242 @@ def rapor_indir_pdf():
             download_name=dosya_adi
         )
     except Exception as e:
-        flash(f"PDF oluşturulurken hata oluştu: {{str(e)}}", "danger")
+        flash(f"PDF oluşturulurken hata oluştu: {str(e)}", "danger")
         return redirect(url_for("raporlar"))
+
+
+@app.route("/api/stok_getir/<path:cari_kodu>")
+def stok_getir(cari_kodu):
+    """Belirli bir carinin mevcut ve gelecek stoklarını readonly (JSON) döner."""
+    try:
+        # Mevcut stokları topla
+        mevcut_stoklar = MevcutStok.query.filter_by(cari_kodu=cari_kodu).all()
+        mevcut_liste = [{
+            "id": s.id,
+            "kalem": s.kalem,
+            "miktar": s.miktar,
+            "birim": s.birim
+        } for s in mevcut_stoklar]
+
+        # Gelecek stokları topla
+        gelecek_stoklar = GelecekStok.query.filter_by(cari_kodu=cari_kodu).all()
+        gelecek_liste = [{
+            "id": s.id,
+            "kalem": s.kalem,
+            "miktar": s.miktar,
+            "birim": s.birim,
+            "teslim_tarihi": s.teslim_tarihi.strftime('%Y-%m-%d') if s.teslim_tarihi else None
+        } for s in gelecek_stoklar]
+
+        return jsonify({
+            "durum": "basarili",
+            "cari_kodu": cari_kodu,
+            "mevcut_stok": mevcut_liste,
+            "gelecek_stok": gelecek_liste
+        })
+    except Exception as e:
+        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+
+
+@app.route("/stoklar")
+def stoklar():
+    """Stok Yönetimi / Yarı Otomatik Onay Paneli"""
+    # Gelecek Stok Otomasyonu: Teslim tarihi bugün veya geçmişse bildirime dönüştür.
+    bugun = date.today()
+    zamani_gelenler = GelecekStok.query.filter(GelecekStok.teslim_tarihi <= bugun).all()
+    if zamani_gelenler:
+        # Aktif bildirimleri (bekliyor veya reddedildi durumundakiler) tek sorguda çek ve Set'e at
+        aktif_bildirimler = StokBildirim.query.filter(StokBildirim.durum.in_(['bekliyor', 'reddedildi'])).all()
+        aktif_gelecek_stok_idleri = {b.gelecek_stok_id for b in aktif_bildirimler if b.gelecek_stok_id is not None}
+        
+        yeni_bildirimler = []
+        for g in zamani_gelenler:
+            if g.id not in aktif_gelecek_stok_idleri:
+                yeni_bildirimler.append(StokBildirim(
+                    tip='ekleme',
+                    cari_kodu=g.cari_kodu,
+                    kalem=g.kalem,
+                    islem_miktari=g.miktar,
+                    birim=g.birim,
+                    durum='bekliyor',
+                    gelecek_stok_id=g.id
+                ))
+        if yeni_bildirimler:
+            db.session.bulk_save_objects(yeni_bildirimler)
+            db.session.commit()
+
+    bekleyenler = StokBildirim.query.filter_by(durum='bekliyor').order_by(StokBildirim.id.desc()).all()
+    # Mevcut ve Gelecek listelerinde cari ilişkisiyle alfabetik listeleme istersen join eklenebilir.
+    # Ancak mevcut hali id/kod üzerinden sıralama yapar; basitlik adına modeli değiştirmiyorum.
+    mevcut_stoklar = MevcutStok.query.join(Cari).order_by(Cari.firma_adi, MevcutStok.kalem).all()
+    gelecek_stoklar = GelecekStok.query.order_by(GelecekStok.teslim_tarihi.asc()).all()
+    cariler = Cari.query.order_by(Cari.firma_adi).all()
+    reddedilenler = StokBildirim.query.filter_by(durum='reddedildi').all()
+    
+    bekleyen_gelecek_dict = {b.gelecek_stok_id: b.id for b in bekleyenler if b.gelecek_stok_id}
+    reddedilen_gelecek_dict = {b.gelecek_stok_id: b.id for b in reddedilenler if b.gelecek_stok_id}
+
+    return render_template("stoklar.html", 
+                           bekleyenler=bekleyenler, 
+                           mevcut_stoklar=mevcut_stoklar, 
+                           gelecek_stoklar=gelecek_stoklar,
+                           cariler=cariler,
+                           agac_cinsleri=AGAC_CINSLERI,
+                           birimler=BIRIMLER,
+                           bekleyen_gelecek_dict=bekleyen_gelecek_dict,
+                           reddedilen_gelecek_dict=reddedilen_gelecek_dict,
+                           bugun=bugun)
+
+@app.route("/stok_onayla/<int:bildirim_id>", methods=["POST"])
+def stok_onayla(bildirim_id):
+    bildirim = StokBildirim.query.get_or_404(bildirim_id)
+    if bildirim.durum != 'bekliyor':
+        flash("Bu işlem zaten gerçekleştirilmiş.", "warning")
+        return redirect(url_for('stoklar'))
+
+    if bildirim.tip == 'dusum':
+        mevcut = MevcutStok.query.filter_by(cari_kodu=bildirim.cari_kodu, kalem=bildirim.kalem, birim=bildirim.birim).first()
+        if mevcut:
+            mevcut.miktar = max(0.0, mevcut.miktar - bildirim.islem_miktari)
+        else:
+            yeni_stok = MevcutStok(
+                cari_kodu=bildirim.cari_kodu,
+                kalem=bildirim.kalem,
+                miktar=0.0,
+                birim=bildirim.birim
+            )
+            db.session.add(yeni_stok)
+    elif bildirim.tip == 'ekleme':
+        mevcut = MevcutStok.query.filter_by(cari_kodu=bildirim.cari_kodu, kalem=bildirim.kalem, birim=bildirim.birim).first()
+        if mevcut:
+            mevcut.miktar += bildirim.islem_miktari
+        else:
+            yeni_stok = MevcutStok(
+                cari_kodu=bildirim.cari_kodu,
+                kalem=bildirim.kalem,
+                miktar=bildirim.islem_miktari,
+                birim=bildirim.birim
+            )
+            db.session.add(yeni_stok)
+    
+    bildirim.durum = 'onaylandi'
+    if bildirim.gelecek_stok_id:
+        g_stok = GelecekStok.query.get(bildirim.gelecek_stok_id)
+        if g_stok:
+            db.session.delete(g_stok)
+            
+    db.session.commit()
+    flash("Stok işlemi başarıyla onaylandı.", "success")
+    return redirect(url_for('stoklar'))
+
+@app.route("/stok_reddet/<int:bildirim_id>", methods=["POST"])
+def stok_reddet(bildirim_id):
+    bildirim = StokBildirim.query.get_or_404(bildirim_id)
+    if bildirim.durum != 'bekliyor':
+        flash("Bu işlem zaten gerçekleştirilmiş.", "warning")
+        return redirect(url_for('stoklar'))
+    
+    bildirim.durum = 'reddedildi'
+    
+    # Reddedilen gelecek stoklar veritabanından silinmiyor, tekrar düzenlenebilir kalıyor.
+    db.session.commit()
+    flash("Stok işlemi reddedildi.", "info")
+    return redirect(url_for('stoklar'))
+
+
+@app.route("/stok_ekle_manuel", methods=["POST"])
+def stok_ekle_manuel():
+    cari_kodu = request.form.get("cari_kodu")
+    kalem = request.form.get("kalem")
+    miktar = float(request.form.get("miktar", 0))
+    birim = request.form.get("birim", "Ton")
+    
+    mevcut = MevcutStok.query.filter_by(cari_kodu=cari_kodu, kalem=kalem, birim=birim).first()
+    if mevcut:
+        mevcut.miktar += miktar
+    else:
+        yeni = MevcutStok(cari_kodu=cari_kodu, kalem=kalem, miktar=miktar, birim=birim)
+        db.session.add(yeni)
+    
+    db.session.commit()
+    flash("Mevcut stok manuel olarak güncellendi.", "success")
+    return redirect(url_for("stoklar"))
+
+
+@app.route("/gelecek_stok_ekle", methods=["POST"])
+def gelecek_stok_ekle():
+    cari_kodu = request.form.get("cari_kodu")
+    kalem = request.form.get("kalem")
+    miktar = float(request.form.get("miktar", 0))
+    birim = request.form.get("birim", "Ton")
+    teslim_tarihi_str = request.form.get("teslim_tarihi")
+    
+    tarih = datetime.strptime(teslim_tarihi_str, "%Y-%m-%d").date() if teslim_tarihi_str else date.today()
+    yeni = GelecekStok(cari_kodu=cari_kodu, kalem=kalem, miktar=miktar, birim=birim, teslim_tarihi=tarih)
+    db.session.add(yeni)
+    db.session.commit()
+    flash("Gelecek sipariş/taahhüt başarıyla eklendi.", "success")
+    return redirect(url_for("stoklar"))
+
+
+@app.route("/stok_sil/<tip>/<int:id>", methods=["POST"])
+def stok_sil(tip, id):
+    if tip == 'mevcut':
+        kayit = MevcutStok.query.get_or_404(id)
+    elif tip == 'gelecek':
+        kayit = GelecekStok.query.get_or_404(id)
+        # Sahipsiz kalmamaları için bu stoğa ait tüm bildirimleri sil
+        StokBildirim.query.filter_by(gelecek_stok_id=kayit.id).delete()
+    else:
+        flash("Geçersiz işlem tipi.", "danger")
+        return redirect(url_for("stoklar"))
+        
+    db.session.delete(kayit)
+    db.session.commit()
+    flash(f"{'Mevcut' if tip=='mevcut' else 'Gelecek'} stok kaydı silindi.", "success")
+    return redirect(url_for("stoklar"))
+
+
+@app.route("/stok_duzenle/<tip>/<int:id>", methods=["POST"])
+def stok_duzenle(tip, id):
+    if tip == 'mevcut':
+        kayit = MevcutStok.query.get_or_404(id)
+        kayit.cari_kodu = request.form.get("cari_kodu")
+        kayit.kalem = request.form.get("kalem")
+        kayit.miktar = float(request.form.get("miktar", 0))
+        kayit.birim = request.form.get("birim", "Ton")
+    elif tip == 'gelecek':
+        kayit = GelecekStok.query.get_or_404(id)
+        kayit.cari_kodu = request.form.get("cari_kodu")
+        kayit.kalem = request.form.get("kalem")
+        kayit.miktar = float(request.form.get("miktar", 0))
+        kayit.birim = request.form.get("birim", "Ton")
+        teslim_tarihi_str = request.form.get("teslim_tarihi")
+        if teslim_tarihi_str:
+            kayit.teslim_tarihi = datetime.strptime(teslim_tarihi_str, "%Y-%m-%d").date()
+            
+        # Eğer bu gelecek stok için bekleyen veya reddedilmiş bir bildirim varsa onu da güncelle (veya tarihi uzadıysa bildirimi iptal et)
+        bildirim = StokBildirim.query.filter_by(gelecek_stok_id=kayit.id).filter(StokBildirim.durum.in_(['bekliyor', 'reddedildi'])).first()
+        if bildirim:
+            if kayit.teslim_tarihi > date.today():
+                # Tarih ötelendiyse bildirimi tamamen sil, üretimde kalsın. Günü gelince yeniden bildirim oluşur.
+                db.session.delete(bildirim)
+            else:
+                # Hala günü geçmişse veya bugüne eşitse
+                if bildirim.durum == 'reddedildi':
+                    bildirim.durum = 'bekliyor' # Düzenlendiği için tekrar bekleyenler listesine / onaya düşsün
+                bildirim.cari_kodu = kayit.cari_kodu
+                bildirim.kalem = kayit.kalem
+                bildirim.islem_miktari = kayit.miktar
+                bildirim.birim = kayit.birim
+    else:
+        flash("Geçersiz işlem tipi.", "danger")
+        return redirect(url_for("stoklar"))
+        
+    db.session.commit()
+    flash(f"{'Mevcut' if tip=='mevcut' else 'Gelecek'} stok kaydı güncellendi.", "success")
+    return redirect(url_for("stoklar"))
+
 
 
 def check_and_update_tables():
@@ -1014,7 +1306,10 @@ def check_and_update_tables():
                         elif "BOOL" in col_type:
                             default_clause = " DEFAULT 0"
                         else:
-                            default_clause = " DEFAULT ''"
+                            if column.name == "birim":
+                                default_clause = " DEFAULT 'Ton'"
+                            else:
+                                default_clause = " DEFAULT ''"
                     
                     sql = f'ALTER TABLE {table_name} ADD COLUMN {column.name} {column.type}{default_clause}'
                     try:
@@ -1025,12 +1320,15 @@ def check_and_update_tables():
                         db.session.rollback()
                         print(f"[!] Migrasyon Hatası ({table_name}.{column.name}): {e}")
 
-# ───────────────────────── Uygulama Başlatma ─────────────────────────
+# ───────────────────────── Uygulama Başlatma & Otonom Migrasyon ─────────────────────────
+
+# Canlı sunucu (WSGI) ortamlarında veya yerel çalışmalarda dosyalar belleğe yüklendiği anda 
+# eksik tabloların ve sütunların (Stok modelleri vb.) otomatik olarak eski veritabanına eklenmesi için:
+with app.app_context():
+    db.create_all()
+    check_and_update_tables()
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        check_and_update_tables()
     app.run(debug=True, host="0.0.0.0", port=5000)
 
 

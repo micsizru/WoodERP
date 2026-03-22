@@ -17,30 +17,39 @@
         <!-- Hızlı İşlemler -->
         <h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill text-warning me-1"></i>Hızlı İşlemler</h5>
         <div class="row g-3">
-            <div class="col-12 col-sm-4">
+            <div class="col-12 col-sm-6">
                 <a href="{{ url_for('yeni_fis_formu') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
-                    <div class="card-body text-center p-5">
+                    <div class="card-body text-center p-4">
                         <div class="display-4 mb-3">📝</div>
                         <div class="action-title fw-bold text-dark fs-5">Yeni Fiş Oluştur</div>
                         <p class="text-muted mb-0">Sevkiyat girişi yapın</p>
                     </div>
                 </a>
             </div>
-            <div class="col-12 col-sm-4">
+            <div class="col-12 col-sm-6">
                 <a href="{{ url_for('fisleri_goruntule') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
-                    <div class="card-body text-center p-5">
+                    <div class="card-body text-center p-4">
                         <div class="display-4 mb-3">📋</div>
                         <div class="action-title fw-bold text-dark fs-5">Fişleri Görüntüle</div>
                         <p class="text-muted mb-0">Kayıtları inceleyin</p>
                     </div>
                 </a>
             </div>
-            <div class="col-12 col-sm-4">
+            <div class="col-12 col-sm-6">
                 <a href="{{ url_for('raporlar') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
-                    <div class="card-body text-center p-5">
+                    <div class="card-body text-center p-4">
                         <div class="display-4 mb-3">📊</div>
                         <div class="action-title fw-bold text-dark fs-5">Rapor Sorgula</div>
                         <p class="text-muted mb-0">Excel rapor hazırlayın</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-12 col-sm-6">
+                <a href="{{ url_for('stoklar') }}" class="action-card card h-100 text-decoration-none transition shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="display-4 mb-3">📦</div>
+                        <div class="action-title fw-bold text-dark fs-5">Stok Yönetimi</div>
+                        <p class="text-muted mb-0">Stok ve taahhüt takibi</p>
                     </div>
                 </a>
             </div>

@@ -46,6 +46,14 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" data-ep="stoklar" href="{{ url_for('stoklar') }}">
+                            <i class="bi bi-box-seam me-1"></i> Stoklar
+                            {% if bekleyen_bildirim_sayisi and bekleyen_bildirim_sayisi > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ bekleyen_bildirim_sayisi }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" data-ep="raporlar" href="{{ url_for('raporlar') }}">
                             <i class="bi bi-file-earmark-excel-fill me-1"></i> Rapor
                         </a>

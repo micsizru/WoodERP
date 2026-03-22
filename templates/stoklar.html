@@ -1,0 +1,687 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2><i class="bi bi-box-seam me-2"></i>Stok Yönetimi</h2>
+</div>
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs mb-4" id="stokTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="bekleyen-tab" data-bs-toggle="tab" data-bs-target="#bekleyen" type="button" role="tab" aria-controls="bekleyen" aria-selected="false">
+        <div class="tab-icon-wrapper">
+            <i class="bi bi-bell"></i>
+            {% if bekleyen_bildirim_sayisi > 0 %}
+            <span class="badge rounded-pill bg-danger">{{ bekleyen_bildirim_sayisi }}</span>
+            {% endif %}
+        </div>
+        <span class="tab-text">Bekleyen İşlemler</span>
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="mevcut-tab" data-bs-toggle="tab" data-bs-target="#mevcut" type="button" role="tab" aria-controls="mevcut" aria-selected="true">
+        <div class="tab-icon-wrapper">
+            <i class="bi bi-boxes"></i>
+        </div>
+        <span class="tab-text">Mevcut Stoklar</span>
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="gelecek-tab" data-bs-toggle="tab" data-bs-target="#gelecek" type="button" role="tab" aria-controls="gelecek" aria-selected="false">
+        <div class="tab-icon-wrapper">
+            <i class="bi bi-calendar-event"></i>
+        </div>
+        <span class="tab-text">Gelecek Kayıtlar</span>
+    </button>
+  </li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content" id="stokTabsContent">
+  <!-- A) Bekleyen Bildirimler -->
+  <div class="tab-pane fade" id="bekleyen" role="tabpanel" aria-labelledby="bekleyen-tab">
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body p-0">
+            {% if bekleyenler %}
+            <!-- Masaüstü Tablo -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: var(--ma-light); color: var(--ma-dark);">
+                        <tr>
+                            <th class="ps-4 py-3">#</th>
+                            <th class="py-3">İşlem Tipi</th>
+                            <th class="py-3">Cari / Kooperatif</th>
+                            <th class="py-3">Odun Cinsi (Kalem)</th>
+                            <th class="py-3">İşlem Miktarı</th>
+                            <th class="py-3">Bağlı Fiş</th>
+                            <th class="text-end pe-4 py-3">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bekleyenler %}
+                        <tr>
+                            <td class="ps-4"><strong>{{ b.id }}</strong></td>
+                            <td>
+                                {% if b.tip == 'dusum' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-arrow-down-right me-1"></i>Düşüm (Stoktan)</span>
+                                {% else %}
+                                <span class="badge bg-success"><i class="bi bi-arrow-up-right me-1"></i>Ekleme</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ b.cari.firma_adi }}</strong></td>
+                            <td>{{ b.kalem }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary px-3 py-2"><i class="bi bi-boxes me-1"></i>{{ b.islem_miktari }}</span>
+                                    <span class="badge bg-secondary px-3 py-2">{{ b.birim }}</span>
+                                </div>
+                            </td>
+                            <td>{% if b.fis_id %}<a href="{{ url_for('fis_detay', fis_id=b.fis_id) }}" class="text-decoration-none"><i class="bi bi-truck me-1"></i>Fiş #{{ b.fis_id }}</a>{% else %}-{% endif %}</td>
+                            <td class="text-end pe-4">
+                                <form action="{{ url_for('stok_onayla', bildirim_id=b.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success rounded-circle shadow-sm me-1" title="Onayla"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                                <form action="{{ url_for('stok_reddet', bildirim_id=b.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reddet"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Mobil Kartlar -->
+            <div class="d-md-none p-3">
+                {% for b in bekleyenler %}
+                <div class="card shadow-sm mb-3 border-0" style="border-radius: 14px; overflow: hidden;">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            {% if b.tip == 'dusum' %}
+                            <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-arrow-down-right me-1"></i>Düşüm</span>
+                            {% else %}
+                            <span class="badge bg-success px-3 py-2"><i class="bi bi-arrow-up-right me-1"></i>Ekleme</span>
+                            {% endif %}
+                            {% if b.fis_id %}<a href="{{ url_for('fis_detay', fis_id=b.fis_id) }}" class="text-muted text-decoration-none small"><i class="bi bi-truck me-1"></i>Fiş #{{ b.fis_id }}</a>{% endif %}
+                        </div>
+                        <h5 class="fw-bolder mb-1 text-dark">{{ b.cari.firma_adi }}</h5>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted small"><i class="bi bi-tree me-1"></i> {{ b.kalem }}</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary px-3 py-2"><i class="bi bi-boxes me-1"></i>{{ b.islem_miktari }}</span>
+                                    <span class="badge bg-secondary px-3 py-2">{{ b.birim }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form action="{{ url_for('stok_onayla', bildirim_id=b.id) }}" method="POST" class="w-100">
+                                <button type="submit" class="btn btn-success w-100 py-2 fw-bold"><i class="bi bi-check-lg me-2"></i>Onayla</button>
+                            </form>
+                            <form action="{{ url_for('stok_reddet', bildirim_id=b.id) }}" method="POST" class="w-100">
+                                <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-x-lg me-2"></i>Reddet</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-check2-circle" style="font-size: 4rem; color: var(--ma-success);"></i>
+                <h5 class="mt-3">Şu an için bekleyen stok işlemi bulunmuyor.</h5>
+                <p>Yeni düşüm veya ekleme işlemleri buraya düşecektir.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+  </div>
+
+  <!-- B) Mevcut Stoklar -->
+  <div class="tab-pane fade show active" id="mevcut" role="tabpanel" aria-labelledby="mevcut-tab">
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-ma-primary"><i class="bi bi-boxes me-2"></i>Mevcut Stok Kayıtları</h5>
+            <button class="btn btn-ma-primary btn-sm" data-bs-toggle="modal" data-bs-target="#mevcutStokModal"><i class="bi bi-plus-lg me-1"></i>Yeni Stok Ekle</button>
+        </div>
+        <div class="card-body p-0">
+            {% if mevcut_stoklar %}
+            <!-- Masaüstü Tablo -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: var(--ma-light); color: var(--ma-dark);">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 40%;">Odun Cinsi (Kalem)</th>
+                            <th class="py-3" style="width: 20%;">Mevcut Miktar</th>
+                            <th class="py-3" style="width: 20%;">Birim</th>
+                            <th class="text-end pe-4 py-3" style="width: 20%;">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cari_isim, stoklar_grubu in mevcut_stoklar|groupby('cari.firma_adi') %}
+                        {% set grup_id = 'mevcut-dt-' ~ loop.index %}
+                        <tr class="koop-header-row" onclick="toggleKoopGrup(this, '{{ grup_id }}')" style="cursor:pointer;">
+                            <td colspan="4" class="ps-3 py-3">
+                                <span class="koop-header-label">
+                                    <i class="bi bi-chevron-down koop-chevron me-2"></i>
+                                    <i class="bi bi-building me-2 text-success"></i>
+                                    {{ cari_isim }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tbody id="{{ grup_id }}" class="koop-tbody">
+                        {% for m in stoklar_grubu %}
+                        <tr>
+                            <td class="ps-4">{{ m.kalem }}</td>
+                            <td><span class="badge bg-primary fs-6">{{ m.miktar }}</span></td>
+                            <td>{{ m.birim }}</td>
+                            <td class="text-end pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-warning rounded-circle me-1" title="Düzenle"
+                                    data-id="{{ m.id }}" data-kodu="{{ m.cari_kodu }}" data-kalem="{{ m.kalem }}" data-miktar="{{ m.miktar }}" data-birim="{{ m.birim }}"
+                                    onclick="stokDuzenleModalDoldur('mevcut', this)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ url_for('stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Mobil Kartlar -->
+            <div class="d-md-none p-3">
+                {% for cari_isim, stoklar_grubu in mevcut_stoklar|groupby('cari.firma_adi') %}
+                {% set grup_mob_id = 'mevcut-mob-' ~ loop.index %}
+                <div class="koop-section-header" data-bs-toggle="collapse" data-bs-target="#{{ grup_mob_id }}">
+                    <span class="koop-section-name">
+                        <i class="bi bi-building me-2"></i>{{ cari_isim }}
+                    </span>
+                    <i class="bi bi-chevron-down koop-chevron"></i>
+                </div>
+                <div id="{{ grup_mob_id }}" class="collapse show">
+                {% for m in stoklar_grubu %}
+                <div class="card shadow-sm mb-2 border-0" style="border-radius: 14px; overflow: hidden;">
+                    <div class="card-body p-3">
+                        <h5 class="fw-bolder mb-2 text-dark">{{ m.kalem }}</h5>
+                        <div class="d-flex gap-2 mb-3 align-items-center">
+                            <span class="badge bg-primary px-3 py-2" style="border-radius: 8px;"><i class="bi bi-boxes me-1"></i>{{ m.miktar }}</span>
+                            <span class="badge bg-secondary px-3 py-2" style="border-radius: 8px;">{{ m.birim }}</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-warning w-100 py-2 fw-bold text-dark"
+                                data-id="{{ m.id }}" data-kodu="{{ m.cari_kodu }}" data-kalem="{{ m.kalem }}" data-miktar="{{ m.miktar }}" data-birim="{{ m.birim }}"
+                                onclick="stokDuzenleModalDoldur('mevcut', this)">
+                                <i class="bi bi-pencil-square me-2"></i>Düzenle
+                            </button>
+                            <form action="{{ url_for('stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="w-100" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-trash3-fill me-2"></i>Sil</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-boxes" style="font-size: 4rem; color: var(--ma-primary);"></i>
+                <h5 class="mt-3">Onaylanmış mevcut stok kaydı bulunamadı.</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+  </div>
+
+  <!-- C) Gelecek Stoklar -->
+  <div class="tab-pane fade" id="gelecek" role="tabpanel" aria-labelledby="gelecek-tab">
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-ma-primary"><i class="bi bi-calendar-event me-2"></i>Gelecek (Taahhüt) Kayıtları</h5>
+            <button class="btn btn-ma-primary btn-sm" data-bs-toggle="modal" data-bs-target="#gelecekStokModal"><i class="bi bi-plus-lg me-1"></i>Yeni Taahhüt Ekle</button>
+        </div>
+        <div class="card-body p-0">
+            {% if gelecek_stoklar %}
+            <!-- Masaüstü Tablo -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: var(--ma-light); color: var(--ma-dark);">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 15%;">Teslim Tarihi</th>
+                            <th class="py-3" style="width: 25%;">Odun Cinsi</th>
+                            <th class="py-3" style="width: 15%;">Miktar</th>
+                            <th class="py-3" style="width: 10%;">Birim</th>
+                            <th class="py-3" style="width: 15%;">Durum</th>
+                            <th class="text-end pe-4 py-3" style="width: 20%;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cari_isim, stoklar_grubu in gelecek_stoklar|groupby('cari.firma_adi') %}
+                        {% set grup_id = 'gelecek-dt-' ~ loop.index %}
+                        <tr class="koop-header-row" onclick="toggleKoopGrup(this, '{{ grup_id }}')" style="cursor:pointer;">
+                            <td colspan="6" class="ps-3 py-3">
+                                <span class="koop-header-label">
+                                    <i class="bi bi-chevron-down koop-chevron me-2"></i>
+                                    <i class="bi bi-building me-2 text-success"></i>
+                                    {{ cari_isim }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tbody id="{{ grup_id }}" class="koop-tbody">
+                        {% for g in stoklar_grubu %}
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-info text-dark">{{ g.teslim_tarihi.strftime('%d.%m.%Y') if g.teslim_tarihi else '-' }}</span></td>
+                            {% set bekleyen_id = bekleyen_gelecek_dict.get(g.id) %}
+                            {% set reddedildi_id = reddedilen_gelecek_dict.get(g.id) %}
+                            <td>{{ g.kalem }}</td>
+                            <td>{{ g.miktar }}</td>
+                            <td>{{ g.birim }}</td>
+                            <td>
+                                <div class="d-flex flex-column align-items-start gap-1">
+                                    {% if reddedildi_id %}
+                                        <span class="badge bg-danger">Reddedildi</span>
+                                    {% elif g.teslim_tarihi <= bugun %}
+                                        <span class="badge bg-secondary" style="font-size: 0.7rem; opacity: 0.85;">Revizede</span>
+                                        {% if bekleyen_id %}
+                                        <span class="badge bg-warning text-dark shadow-sm">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Onay Bekliyor
+                                        </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-gear-fill me-1"></i> Üretimde
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-warning rounded-circle me-1" title="Düzenle"
+                                    data-id="{{ g.id }}" data-kodu="{{ g.cari.firma_kodu }}" data-kalem="{{ g.kalem }}" data-miktar="{{ g.miktar }}" data-birim="{{ g.birim }}" data-tarih="{{ g.teslim_tarihi.strftime('%Y-%m-%d') if g.teslim_tarihi else '' }}"
+                                    onclick="stokDuzenleModalDoldur('gelecek', this)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {% if bekleyen_id %}
+                                <form action="{{ url_for('stok_onayla', bildirim_id=bekleyen_id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success rounded-circle shadow-sm me-1" title="Onayla"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                                <form action="{{ url_for('stok_reddet', bildirim_id=bekleyen_id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reddet"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                                {% else %}
+                                <form action="{{ url_for('stok_sil', tip='gelecek', id=g.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil"><i class="bi bi-trash"></i></button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Mobil Kartlar -->
+            <div class="d-md-none p-3">
+                {% for cari_isim, stoklar_grubu in gelecek_stoklar|groupby('cari.firma_adi') %}
+                {% set grup_mob_id = 'gelecek-mob-' ~ loop.index %}
+                <div class="koop-section-header" data-bs-toggle="collapse" data-bs-target="#{{ grup_mob_id }}">
+                    <span class="koop-section-name">
+                        <i class="bi bi-building me-2"></i>{{ cari_isim }}
+                    </span>
+                    <i class="bi bi-chevron-down koop-chevron"></i>
+                </div>
+                <div id="{{ grup_mob_id }}" class="collapse show">
+                {% for g in stoklar_grubu %}
+                {% set bekleyen_id = bekleyen_gelecek_dict.get(g.id) %}
+                {% set reddedildi_id = reddedilen_gelecek_dict.get(g.id) %}
+                <div class="card shadow-sm mb-2 border-0" style="border-radius: 14px; overflow: hidden;">
+                    <div class="card-body p-3">
+                        <!-- Miktar ve Birim Satırı -->
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary px-3 py-2" style="border-radius: 8px;"><i class="bi bi-boxes me-1"></i>{{ g.miktar }}</span>
+                            <span class="badge bg-secondary px-3 py-2" style="border-radius: 8px;">{{ g.birim }}</span>
+                        </div>
+                        
+                        <!-- Durum / Status Satırı (Ayrışmış) -->
+                        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                            {% if reddedildi_id %}
+                                <span class="badge rounded-pill bg-danger px-3 py-2 fw-bold">Reddedildi</span>
+                            {% elif g.teslim_tarihi <= bugun %}
+                                <span class="badge rounded-pill bg-secondary px-3 py-2 text-white" style="opacity: 0.9; font-size: 0.75rem;">Revizede</span>
+                                {% if bekleyen_id %}
+                                <span class="badge rounded-pill bg-warning text-dark px-3 py-2 border border-warning shadow-sm fw-bold">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Onay Bekliyor
+                                </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge rounded-pill bg-success px-3 py-2 fw-bold text-white shadow-sm">
+                                    <i class="bi bi-gear-fill me-1"></i> Üretimde
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex flex-column gap-2 mt-2">
+                            <button type="button" class="btn btn-warning py-2 fw-bold text-dark"
+                                data-id="{{ g.id }}" data-kodu="{{ g.cari.firma_kodu }}" data-kalem="{{ g.kalem }}" data-miktar="{{ g.miktar }}" data-birim="{{ g.birim }}" data-tarih="{{ g.teslim_tarihi.strftime('%Y-%m-%d') if g.teslim_tarihi else '' }}"
+                                onclick="stokDuzenleModalDoldur('gelecek', this)">
+                                <i class="bi bi-pencil-square me-2"></i>Düzenle
+                            </button>
+                            {% if bekleyen_id %}
+                            <div class="d-flex gap-2">
+                                <form action="{{ url_for('stok_onayla', bildirim_id=bekleyen_id) }}" method="POST" class="w-100">
+                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold"><i class="bi bi-check-lg me-2"></i>Onayla</button>
+                                </form>
+                                <form action="{{ url_for('stok_reddet', bildirim_id=bekleyen_id) }}" method="POST" class="w-100">
+                                    <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-x-lg me-2"></i>Reddet</button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <form action="{{ url_for('stok_sil', tip='gelecek', id=g.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-trash3-fill me-2"></i>Sil</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-calendar-x" style="font-size: 4rem; color: var(--ma-secondary);"></i>
+                <h5 class="mt-3">Gelecekte teslim edilmesi planlanan bir stok bulunmuyor.</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mevcut Stok Ekleme Modalı -->
+<div class="modal fade" id="mevcutStokModal" tabindex="-1">
+
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+      <form action="{{ url_for('stok_ekle_manuel') }}" method="POST">
+        <div class="modal-header" style="background-color: var(--ma-light);">
+          <h5 class="modal-title text-ma-dark"><i class="bi bi-plus-circle me-2"></i>Manuel Stok Ekle/Güncelle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Cari / Kooperatif</label>
+            <select name="cari_kodu" class="form-select" required>
+              <option value="" disabled selected>Seçiniz...</option>
+              {% for c in cariler %}
+              <option value="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Odun Cinsi (Kalem)</label>
+            <select name="kalem" class="form-select" required>
+              <option value="" disabled selected>Seçiniz...</option>
+              {% for a in agac_cinsleri %}
+              <option value="{{ a }}">{{ a }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Eklenecek Miktar</label>
+              <input type="number" name="miktar" class="form-control" step="0.01" min="0.01" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Birim</label>
+              <select name="birim" class="form-select" required>
+                {% for b in birimler %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" class="btn btn-ma-primary"><i class="bi bi-save me-1"></i> Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Gelecek Stok Ekleme Modalı -->
+<div class="modal fade" id="gelecekStokModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+      <form action="{{ url_for('gelecek_stok_ekle') }}" method="POST">
+        <div class="modal-header" style="background-color: var(--ma-light);">
+          <h5 class="modal-title text-ma-dark"><i class="bi bi-calendar-plus me-2"></i>Yeni Taahhüt Ekle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Teslim Tarihi</label>
+            <input type="date" name="teslim_tarihi" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Cari / Kooperatif</label>
+            <select name="cari_kodu" class="form-select" required>
+              <option value="" disabled selected>Seçiniz...</option>
+              {% for c in cariler %}
+              <option value="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Odun Cinsi (Kalem)</label>
+            <select name="kalem" class="form-select" required>
+              <option value="" disabled selected>Seçiniz...</option>
+              {% for a in agac_cinsleri %}
+              <option value="{{ a }}">{{ a }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Miktar</label>
+              <input type="number" name="miktar" class="form-control" step="0.01" min="0.01" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Birim</label>
+              <select name="birim" class="form-select" required>
+                {% for b in birimler %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" class="btn btn-ma-primary"><i class="bi bi-save me-1"></i> Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Mevcut Stok DÜZENLEME Modalı -->
+<div class="modal fade" id="mevcutStokDuzenleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+      <form id="formMevcutDuzenle" action="" method="POST">
+        <div class="modal-header" style="background-color: var(--bs-warning);">
+          <h5 class="modal-title text-dark"><i class="bi bi-pencil-square me-2"></i>Mevcut Stok Güncelle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Cari / Kooperatif</label>
+            <select name="cari_kodu" id="duzenle_mevcut_cari" class="form-select" required>
+              <option value="" disabled>Seçiniz...</option>
+              {% for c in cariler %}
+              <option value="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Odun Cinsi (Kalem)</label>
+            <select name="kalem" id="duzenle_mevcut_kalem" class="form-select" required>
+              <option value="" disabled>Seçiniz...</option>
+              {% for a in agac_cinsleri %}
+              <option value="{{ a }}">{{ a }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Toplam Miktar</label>
+              <input type="number" name="miktar" id="duzenle_mevcut_miktar" class="form-control" step="0.01" min="0" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Birim</label>
+              <select name="birim" id="duzenle_mevcut_birim" class="form-select" required>
+                {% for b in birimler %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" class="btn btn-warning"><i class="bi bi-save me-1"></i> Değişiklikleri Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Gelecek Stok DÜZENLEME Modalı -->
+<div class="modal fade" id="gelecekStokDuzenleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+      <form id="formGelecekDuzenle" action="" method="POST">
+        <div class="modal-header" style="background-color: var(--ma-light);">
+          <h5 class="modal-title text-ma-dark"><i class="bi bi-calendar-check me-2"></i>Taahhüt Güncelle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Teslim Tarihi</label>
+            <input type="date" name="teslim_tarihi" id="duzenle_gelecek_tarih" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Cari / Kooperatif</label>
+            <select name="cari_kodu" id="duzenle_gelecek_cari" class="form-select" required>
+              <option value="" disabled>Seçiniz...</option>
+              {% for c in cariler %}
+              <option value="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Odun Cinsi (Kalem)</label>
+            <select name="kalem" id="duzenle_gelecek_kalem" class="form-select" required>
+              <option value="" disabled>Seçiniz...</option>
+              {% for a in agac_cinsleri %}
+              <option value="{{ a }}">{{ a }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Miktar</label>
+              <input type="number" name="miktar" id="duzenle_gelecek_miktar" class="form-control" step="0.01" min="0" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Birim</label>
+              <select name="birim" id="duzenle_gelecek_birim" class="form-select" required>
+                {% for b in birimler %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" class="btn btn-warning"><i class="bi bi-save me-1"></i> Değişiklikleri Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function stokDuzenleModalDoldur(tip, btn) {
+    const id = btn.getAttribute('data-id');
+    const kodu = btn.getAttribute('data-kodu');
+    const kalem = btn.getAttribute('data-kalem');
+    const miktar = btn.getAttribute('data-miktar');
+    const birim = btn.getAttribute('data-birim');
+    
+    if (tip === 'mevcut') {
+        const form = document.getElementById('formMevcutDuzenle');
+        form.action = `/stok_duzenle/mevcut/${id}`;
+        document.getElementById('duzenle_mevcut_cari').value = kodu;
+        document.getElementById('duzenle_mevcut_kalem').value = kalem;
+        document.getElementById('duzenle_mevcut_miktar').value = parseFloat(miktar).toFixed(2);
+        document.getElementById('duzenle_mevcut_birim').value = birim;
+        
+        const modal = new bootstrap.Modal(document.getElementById('mevcutStokDuzenleModal'));
+        modal.show();
+    } else if (tip === 'gelecek') {
+        const tarih = btn.getAttribute('data-tarih');
+        const form = document.getElementById('formGelecekDuzenle');
+        form.action = `/stok_duzenle/gelecek/${id}`;
+        document.getElementById('duzenle_gelecek_tarih').value = tarih;
+        document.getElementById('duzenle_gelecek_cari').value = kodu;
+        document.getElementById('duzenle_gelecek_kalem').value = kalem;
+        document.getElementById('duzenle_gelecek_miktar').value = parseFloat(miktar).toFixed(2);
+        document.getElementById('duzenle_gelecek_birim').value = birim;
+        
+        const modal = new bootstrap.Modal(document.getElementById('gelecekStokDuzenleModal'));
+        modal.show();
+    }
+}
+
+// ─── Kooperatif Grup Desktop Toggle (Bootstrap yok, saf CSS animasyonu) ───
+function toggleKoopGrup(headerRow, grupId) {
+    var tbody = document.getElementById(grupId);
+    if (!tbody) return;
+
+    var isCollapsed = tbody.classList.contains('koop-collapsed');
+
+    if (isCollapsed) {
+        // AÇMAK
+        tbody.style.display = 'table-row-group'; 
+        // Tarayıcının render edebilmesi için küçük bir gecikme
+        setTimeout(function() {
+            tbody.classList.remove('koop-collapsed');
+            headerRow.classList.remove('koop-closed');
+        }, 10);
+    } else {
+        // KAPATMAK
+        tbody.classList.add('koop-collapsed');
+        headerRow.classList.add('koop-closed');
+        
+        // Animasyon bitince (250ms CSS'te) tamamen kaldır ki boşluk kalmasın
+        setTimeout(function() {
+            if (tbody.classList.contains('koop-collapsed')) {
+                tbody.style.display = 'none';
+            }
+        }, 250);
+    }
+}
+
+</script>
+{% endblock %}
+
+

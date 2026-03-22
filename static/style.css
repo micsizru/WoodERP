@@ -601,38 +601,206 @@ body {
     z-index: 9998;
 }
 
-/* ─── Responsive tweaks ─── */
+/* ─── Kooperatif Accordion Başlıkları ─── */
+
+/* Desktop tablo satırı başlığı */
+.koop-header-row {
+    background-color: #f0f7f0 !important;
+    border-left: 4px solid var(--ma-primary) !important;
+    transition: background-color 0.2s;
+}
+
+.koop-header-row:hover {
+    background-color: #dceedd !important;
+}
+
+.koop-header-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ma-primary-dark);
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Mobil kart bölümü başlığı */
+.koop-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f0f7f0;
+    border-left: 4px solid var(--ma-primary);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.koop-section-header:first-of-type {
+    margin-top: 0;
+}
+
+.koop-section-header:hover {
+    background: #dceedd;
+}
+
+.koop-section-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ma-primary-dark);
+    display: flex;
+    align-items: center;
+}
+
+/* Açma/kapama oku animasyonu */
+.koop-chevron {
+    transition: transform 0.3s ease;
+    color: var(--ma-primary);
+    font-size: 0.9rem;
+}
+
+/* Desktop tbody smooth animasyonu — td bazlı agresif küçültme */
+.koop-tbody tr td {
+    max-height: 200px;
+    opacity: 1;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    transition: all 0.25s ease-in-out;
+    overflow: hidden;
+}
+
+/* Kapalı hal: Tablonun yer kaplamasını tamamen engellemek için her şeyi sıfırla */
+.koop-tbody.koop-collapsed tr td {
+    max-height: 0 !important;
+    height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+    opacity: 0 !important;
+    border: none !important;
+}
+
+/* İçindeki ikon ve form elemanlarını da küçült */
+/* Kooperatif İçeriklerini Gizle */
+.koop-tbody.koop-collapsed tr td * {
+    display: none;
+}
+
+/* === Stoklar Sekme Tasarımı: Masaüstü (Varsayılan) === */
+#stokTabs {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 2px solid #dee2e6;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem !important;
+}
+
+#stokTabs .nav-item {
+    margin-right: 4px;
+}
+
+#stokTabs .nav-link {
+    display: block;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid transparent;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transition: all 0.2s;
+}
+
+.tab-icon-wrapper {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+    position: relative;
+    font-size: 1.15rem;
+}
+
+
+.tab-icon-wrapper .badge {
+    padding: 2px 4px;
+    font-size: 0.65rem;
+}
+
+.tab-text {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: 600;
+}
+
+/* === Stoklar Sekme Tasarımı: Mobil (< 768px) === */
 @media (max-width: 768px) {
-    .stat-card .stat-value {
-        font-size: 1.75rem;
+    #stokTabs {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        background-color: #0d6efd !important; 
+        border-radius: 14px !important;
+        padding: 5px !important;
+        border: none !important;
+        margin-bottom: 1.5rem !important;
+        gap: 5px !important;
+        box-shadow: 0 10px 20px -5px rgba(13, 110, 253, 0.35) !important;
     }
 
-    .action-card .card-body {
-        padding: 1.25rem 1rem;
+    #stokTabs .nav-item {
+        display: block !important;
+        width: 100% !important;
     }
 
-    .action-card .action-icon {
-        font-size: 2.25rem;
+    #stokTabs .nav-link {
+        border: none !important;
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+        padding: 12px 2px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 84px !important;
+        width: 100% !important;
+        gap: 6px !important;
     }
 
-    .kalem-satiri {
-        padding: 0.85rem 0.75rem;
+    .tab-icon-wrapper {
+        position: relative !important;
+        display: flex !important;
+        font-size: 1.35rem !important;
+        height: 28px !important;
+        margin-right: 0 !important;
     }
 
-    .form-section {
-        padding: 1rem;
+    .tab-icon-wrapper .badge {
+        position: absolute !important;
+        top: -6px !important;
+        right: -12px !important;
+        border: 2px solid #0d6efd !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
     }
 
-    .table-ma thead th,
-    .table-ma tbody td {
-        padding: 0.5rem 0.65rem;
-        font-size: 0.85rem;
+    .tab-text {
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        line-height: 1.15 !important;
+        display: block !important;
+        text-align: center !important;
+        letter-spacing: -0.2px;
     }
 
-    .detail-grid {
-        grid-template-columns: repeat(2, 1fr);
+    #stokTabs .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.18) !important;
+        color: #fff !important;
+        box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.25) !important;
     }
 }
+
+
+
 
 @media (max-width: 480px) {
     .detail-grid {

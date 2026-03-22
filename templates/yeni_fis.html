@@ -16,16 +16,17 @@
         </div>
         <div class="col-md-4">
             <label for="sevk_eden_cari" class="form-label">Sevk Eden Cari</label>
-            <select class="form-select" id="sevk_eden_cari_select" onchange="toggleManualInput('sevk_eden_cari')"
+            <select class="form-select" id="sevk_eden_cari_select" onchange="toggleManualInput('sevk_eden_cari'); fetchMevcutStok();"
                 required>
                 <option value="" disabled selected>Cari seçin...</option>
                 {% for c in cariler %}
-                <option value="{{ c.firma_adi }}">{{ c.firma_adi }}</option>
+                <option value="{{ c.firma_adi }}" data-kodu="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
                 {% endfor %}
                 <option value="other">-- Diğer / Manuel Giriş --</option>
             </select>
             <input type="text" class="form-control mt-2 shadow-sm border-primary" id="sevk_eden_cari_manual"
                 placeholder="Manuel firma adı girin..." style="display:none;">
+            <!-- Cari stok bilgisi ve global checkbox alanı kalem bazlıya taşındı -->
         </div>
         <div class="col-md-4">
             <label for="plaka_no" class="form-label">Plaka No</label>
@@ -107,6 +108,7 @@
     const birimler = JSON.parse('{{ birimler | tojson | safe }}');
 
     let kalemSayaci = 0;
+    let mevcutStokData = [];
 
     // ─── Dropdown option builder ───
     function optionlarOlustur(dizi, secilen) {
@@ -132,7 +134,8 @@
             <div class="row g-2 mt-1">
                 <div class="col-6 col-md-3">
                     <label class="form-label">Ağaç Cinsi</label>
-                    <select class="form-select kalem-agac">${optionlarOlustur(agacCinsleri)}</select>
+                    <select class="form-select kalem-agac" onchange="stokBilgisiGuncelle(this)">${optionlarOlustur(agacCinsleri)}</select>
+                    <small class="text-primary fw-bold mt-1 d-block kalem-stok-bilgi"></small>
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="form-label">Çap</label>
@@ -149,6 +152,10 @@
                 <div class="col-4 col-md-3">
                     <label class="form-label">Birim Fiyat (₺)</label>
                     <input type="number" class="form-control kalem-birim-fiyat" step="0.01" min="0" placeholder="0.00">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input kalem-stok-disi" type="checkbox" tabindex="-1">
+                        <label class="form-check-label text-muted small" style="font-size: 0.75rem;">Stok dışı bırak (Düşme)</label>
+                    </div>
                 </div>
             </div>
         `;
@@ -176,6 +183,52 @@
         } else {
             manual.style.display = 'none';
             manual.required = false;
+        }
+    }
+
+    // ─── Cari Stok Bilgisini Getir ───
+    function fetchMevcutStok() {
+        const cariSelect = document.getElementById('sevk_eden_cari_select');
+        mevcutStokData = [];
+        document.querySelectorAll('.kalem-stok-bilgi').forEach(el => el.innerHTML = '');
+        
+        if (cariSelect.value === '' || cariSelect.value === 'other') return;
+
+        const selectedOption = cariSelect.options[cariSelect.selectedIndex];
+        const cariKodu = selectedOption.getAttribute('data-kodu');
+        
+        if (!cariKodu) return;
+
+        fetch(`/api/stok_getir/${encodeURIComponent(cariKodu)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.durum === 'basarili' && data.mevcut_stok.length > 0) {
+                    mevcutStokData = data.mevcut_stok;
+                }
+                document.querySelectorAll('.kalem-agac').forEach(sel => stokBilgisiGuncelle(sel));
+            })
+            .catch(err => {
+                console.error("Stok bilgisi çekilemedi: ", err);
+            });
+    }
+
+    // ─── Kalem Bazlı Stok Gösterimi (Tüm Birimler) ───
+    function stokBilgisiGuncelle(selectElement) {
+        const row = selectElement.closest('.kalem-satiri');
+        const bilgiElementi = row.querySelector('.kalem-stok-bilgi');
+        const secilenCins = selectElement.value;
+        const stoklar = mevcutStokData.filter(s => s.kalem === secilenCins);
+
+        if (stoklar.length > 0) {
+            bilgiElementi.innerHTML = stoklar.map(s => 
+                `<span class="badge bg-light text-primary border border-primary me-1 mb-1" style="font-weight:700;">
+                    <i class="bi bi-box-seam me-1"></i> ${s.miktar} ${s.birim}
+                </span>`
+            ).join('');
+            bilgiElementi.className = 'mt-2 d-block kalem-stok-bilgi';
+        } else {
+            bilgiElementi.innerHTML = `<i class="bi bi-info-circle"></i> Stok kaydı yok`;
+            bilgiElementi.className = 'text-muted small mt-1 d-block kalem-stok-bilgi';
         }
     }
 
@@ -261,6 +314,7 @@
             const miktar = parseFloat(div.querySelector('.kalem-miktar').value);
             const birim = div.querySelector('.kalem-birim').value;
             const birimFiyat = parseFloat(div.querySelector('.kalem-birim-fiyat').value);
+            const stokDisi = div.querySelector('.kalem-stok-disi').checked;
 
             if (isNaN(miktar) || miktar <= 0 || isNaN(birimFiyat) || birimFiyat < 0) {
                 gecerli = false;
@@ -273,6 +327,7 @@
                 miktar: miktar,
                 birim: birim,
                 birim_fiyat: birimFiyat,
+                stok_disi_birak: stokDisi
             });
         });
 
@@ -283,6 +338,7 @@
 
         // Gönder
         const btnKaydet = document.getElementById('btnKaydet');
+
         btnKaydet.disabled = true;
         btnKaydet.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
 
@@ -292,7 +348,7 @@
             sevk_yeri_fabrika: fabrika,
             sevk_yeri_fis_no: fisNo,
             plaka_no: plaka,
-            kalemler: kalemler,
+            kalemler: kalemler
         };
 
         fetch("{{ url_for('yeni_fis_kaydet') }}", {

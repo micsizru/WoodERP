@@ -1,9 +1,13 @@
+*.db
 veritabani.db
 __pycache__/
 venv/
 .vscode/
-duzeltilmesi-gerekenler.txt
 .env
 pyrightconfig.json
-*.db
-veritabani.db
+duzeltilmesi-gerekenler.txt
+sustainability.txt
+run.py
+fix_sqlite.py
+baslat.bat
+.deprecated_monolith/

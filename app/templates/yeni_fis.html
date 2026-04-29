@@ -2,11 +2,8 @@
 
 {% block content %}
 <!-- ─── Page Header ─── -->
-<div class="page-header d-flex justify-content-between align-items-center">
-    <h2><i class="bi bi-pencil-square me-2"></i>Fiş Düzenle (#{{ fis.id }})</h2>
-    <a href="{{ url_for('fisleri_goruntule') }}" class="btn btn-ma-outline">
-        <i class="bi bi-arrow-left me-1"></i> Geri Dön
-    </a>
+<div class="page-header">
+    <h2><i class="bi bi-plus-circle-fill me-2"></i>Yeni Fiş Oluştur</h2>
 </div>
 
 <!-- ─── Üst Bilgi Formu ─── -->
@@ -15,51 +12,42 @@
     <div class="row g-3">
         <div class="col-md-4">
             <label for="tarih" class="form-label">Tarih</label>
-            <input type="date" class="form-control" id="tarih" value="{{ fis.tarih }}" required>
+            <input type="date" class="form-control" id="tarih" value="{{ bugun }}" required>
         </div>
         <div class="col-md-4">
             <label for="sevk_eden_cari" class="form-label">Sevk Eden Cari</label>
-            {% set cari_tanimli = false %}
-            {% for c in cariler %}
-                {% if c.firma_adi == fis.sevk_eden_cari %}{% set cari_tanimli = true %}{% endif %}
-            {% endfor %}
-            <select class="form-select" id="sevk_eden_cari_select" onchange="toggleManualInput('sevk_eden_cari')" required>
-                <option value="" disabled>Cari seçin...</option>
+            <select class="form-select" id="sevk_eden_cari_select" onchange="toggleManualInput('sevk_eden_cari'); fetchMevcutStok();"
+                required>
+                <option value="" disabled selected>Cari seçin...</option>
                 {% for c in cariler %}
-                <option value="{{ c.firma_adi }}" {% if c.firma_adi == fis.sevk_eden_cari %}selected{% endif %}>{{ c.firma_adi }}</option>
+                <option value="{{ c.firma_adi }}" data-kodu="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
                 {% endfor %}
-                <option value="other" {% if not cari_tanimli %}selected{% endif %}>-- Diğer / Manuel Giriş --</option>
+                <option value="other">-- Diğer / Manuel Giriş --</option>
             </select>
             <input type="text" class="form-control mt-2 shadow-sm border-primary" id="sevk_eden_cari_manual"
-                placeholder="Manuel firma adı girin..." 
-                style="display:{% if not cari_tanimli %}block{% else %}none{% endif %};" 
-                value="{% if not cari_tanimli %}{{ fis.sevk_eden_cari }}{% endif %}">
+                placeholder="Manuel firma adı girin..." style="display:none;">
+            <!-- Cari stok bilgisi ve global checkbox alanı kalem bazlıya taşındı -->
         </div>
         <div class="col-md-4">
             <label for="plaka_no" class="form-label">Plaka No</label>
-            <input type="text" class="form-control" id="plaka_no" value="{{ fis.plaka_no }}" placeholder="34 ABC 123" required>
+            <input type="text" class="form-control" id="plaka_no" placeholder="34 ABC 123" required>
         </div>
         <div class="col-md-6">
             <label for="sevk_yeri_fabrika" class="form-label">Sevk Yeri / Fabrika</label>
-            {% set fabrika_tanimli = false %}
-            {% for f in fabrikalar %}
-                {% if f.firma_adi == fis.sevk_yeri_fabrika %}{% set fabrika_tanimli = true %}{% endif %}
-            {% endfor %}
-            <select class="form-select" id="sevk_yeri_fabrika_select" onchange="toggleManualInput('sevk_yeri_fabrika')" required>
-                <option value="" disabled>Fabrika seçin...</option>
+            <select class="form-select" id="sevk_yeri_fabrika_select" onchange="toggleManualInput('sevk_yeri_fabrika')"
+                required>
+                <option value="" disabled selected>Fabrika seçin...</option>
                 {% for f in fabrikalar %}
-                <option value="{{ f.firma_adi }}" {% if f.firma_adi == fis.sevk_yeri_fabrika %}selected{% endif %}>{{ f.firma_adi }}</option>
+                <option value="{{ f.firma_adi }}" data-kodu="{{ f.firma_kodu }}">{{ f.firma_adi }}</option>
                 {% endfor %}
-                <option value="other" {% if not fabrika_tanimli %}selected{% endif %}>-- Diğer / Manuel Giriş --</option>
+                <option value="other">-- Diğer / Manuel Giriş --</option>
             </select>
             <input type="text" class="form-control mt-2 shadow-sm border-info" id="sevk_yeri_fabrika_manual"
-                placeholder="Manuel fabrika adı girin..." 
-                style="display:{% if not fabrika_tanimli %}block{% else %}none{% endif %};" 
-                value="{% if not fabrika_tanimli %}{{ fis.sevk_yeri_fabrika }}{% endif %}">
+                placeholder="Manuel fabrika adı girin..." style="display:none;">
         </div>
         <div class="col-md-6">
             <label for="sevk_yeri_fis_no" class="form-label">Sevk Yeri Fiş No</label>
-            <input type="text" class="form-control" id="sevk_yeri_fis_no" value="{{ fis.sevk_yeri_fis_no }}" placeholder="Fiş numarası..." required>
+            <input type="text" class="form-control" id="sevk_yeri_fis_no" placeholder="Fiş numarası..." required>
         </div>
     </div>
 </div>
@@ -75,7 +63,7 @@
     <div id="kalemlerContainer">
         <!-- Dinamik satırlar buraya eklenir -->
     </div>
-    <div id="kalemUyari" class="text-muted text-center py-3" style="display:none;">
+    <div id="kalemUyari" class="text-muted text-center py-3" style="display:block;">
         <i class="bi bi-info-circle me-1"></i> "Sevk Edilen Odun Cinsi Ekle" butonuna tıklayarak ağaç cinsi ve ölçü satırları ekleyin.
     </div>
 </div>
@@ -83,7 +71,7 @@
 <!-- ─── Submit ─── -->
 <div class="d-grid gap-2 mb-4">
     <button type="button" class="btn btn-ma-primary btn-lg" id="btnKaydet" onclick="fisKaydet()">
-        <i class="bi bi-check-circle-fill me-1"></i> Değişiklikleri Kaydet
+        <i class="bi bi-check-circle-fill me-1"></i> Fişi Kaydet
     </button>
 </div>
 
@@ -100,11 +88,11 @@
                 <p id="sonucModalMesaj" class="mb-0 fs-5"></p>
             </div>
             <div class="modal-footer justify-content-center" id="sonucModalFooter">
-                <a href="{{ url_for('fisleri_goruntule') }}" class="btn btn-ma-accent">
+                <a href="{{ url_for('fis.fisleri_goruntule') }}" class="btn btn-ma-accent">
                     <i class="bi bi-list-ul me-1"></i> Fişlere Git
                 </a>
-                <button type="button" class="btn btn-ma-outline" data-bs-dismiss="modal">
-                    <i class="bi bi-check-circle me-1"></i> Kapat
+                <button type="button" class="btn btn-ma-outline" data-bs-dismiss="modal" onclick="formuSifirla()">
+                    <i class="bi bi-plus-lg me-1"></i> Yeni Fiş
                 </button>
             </div>
         </div>
@@ -118,11 +106,9 @@
     const agacCinsleri = JSON.parse('{{ agac_cinsleri | tojson | safe }}');
     const capler = JSON.parse('{{ capler | tojson | safe }}');
     const birimler = JSON.parse('{{ birimler | tojson | safe }}');
-    
-    // Jinja ile mevcut detayları JSON olarak aktar
-    const mevcutDetaylar = JSON.parse('{{ detaylar_list | tojson | safe }}');
 
     let kalemSayaci = 0;
+    let mevcutStokData = [];
 
     // ─── Dropdown option builder ───
     function optionlarOlustur(dizi, secilen) {
@@ -132,7 +118,7 @@
     }
 
     // ─── Kalem Satırı Ekle ───
-    function kalemEkle(varsayilan = null) {
+    function kalemEkle() {
         kalemSayaci++;
         const container = document.getElementById('kalemlerContainer');
         document.getElementById('kalemUyari').style.display = 'none';
@@ -140,13 +126,6 @@
         const div = document.createElement('div');
         div.className = 'kalem-satiri';
         div.id = `kalem-${kalemSayaci}`;
-        
-        const d_agac = varsayilan ? varsayilan.agac_cinsi : '';
-        const d_cap = varsayilan ? varsayilan.cap : '';
-        const d_miktar = varsayilan ? varsayilan.miktar : '';
-        const d_birim = varsayilan ? varsayilan.birim : '';
-        const d_fiyat = varsayilan ? varsayilan.birim_fiyat : '';
-
         div.innerHTML = `
             <span class="kalem-no">Sevk Edilen Odun Cinsi ${kalemSayaci}</span>
             <button type="button" class="btn-sil-kalem" onclick="kalemSil(${kalemSayaci})">
@@ -155,23 +134,28 @@
             <div class="row g-2 mt-1">
                 <div class="col-6 col-md-3">
                     <label class="form-label">Ağaç Cinsi</label>
-                    <select class="form-select kalem-agac">${optionlarOlustur(agacCinsleri, d_agac)}</select>
+                    <select class="form-select kalem-agac" onchange="stokBilgisiGuncelle(this)">${optionlarOlustur(agacCinsleri)}</select>
+                    <small class="text-primary fw-bold mt-1 d-block kalem-stok-bilgi"></small>
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="form-label">Çap</label>
-                    <select class="form-select kalem-cap">${optionlarOlustur(capler, d_cap)}</select>
+                    <select class="form-select kalem-cap">${optionlarOlustur(capler)}</select>
                 </div>
                 <div class="col-4 col-md-2">
                     <label class="form-label">Miktar</label>
-                    <input type="number" class="form-control kalem-miktar" step="0.01" min="0" placeholder="0.00" value="${d_miktar}">
+                    <input type="number" class="form-control kalem-miktar" step="0.01" min="0" placeholder="0.00">
                 </div>
                 <div class="col-4 col-md-2">
                     <label class="form-label">Birim</label>
-                    <select class="form-select kalem-birim">${optionlarOlustur(birimler, d_birim)}</select>
+                    <select class="form-select kalem-birim">${optionlarOlustur(birimler)}</select>
                 </div>
                 <div class="col-4 col-md-3">
                     <label class="form-label">Birim Fiyat (₺)</label>
-                    <input type="number" class="form-control kalem-birim-fiyat" step="0.01" min="0" placeholder="0.00" value="${d_fiyat}">
+                    <input type="number" class="form-control kalem-birim-fiyat" step="0.01" min="0" placeholder="0.00">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input kalem-stok-disi" type="checkbox" tabindex="-1">
+                        <label class="form-check-label text-muted small" style="font-size: 0.75rem;">Stok dışı bırak (Düşme)</label>
+                    </div>
                 </div>
             </div>
         `;
@@ -182,6 +166,7 @@
     function kalemSil(no) {
         const el = document.getElementById(`kalem-${no}`);
         if (el) el.remove();
+        // Kalan kalem var mı kontrol et
         if (document.querySelectorAll('.kalem-satiri').length === 0) {
             document.getElementById('kalemUyari').style.display = 'block';
         }
@@ -201,6 +186,70 @@
         }
     }
 
+    // ─── Cari Stok Bilgisini Getir ───
+    function fetchMevcutStok() {
+        const cariSelect = document.getElementById('sevk_eden_cari_select');
+        mevcutStokData = [];
+        document.querySelectorAll('.kalem-stok-bilgi').forEach(el => el.innerHTML = '');
+        
+        if (cariSelect.value === '' || cariSelect.value === 'other') return;
+
+        const selectedOption = cariSelect.options[cariSelect.selectedIndex];
+        const cariKodu = selectedOption.getAttribute('data-kodu');
+        
+        if (!cariKodu) return;
+
+        fetch(`/api/stok_getir/${encodeURIComponent(cariKodu)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.durum === 'basarili' && data.mevcut_stok.length > 0) {
+                    mevcutStokData = data.mevcut_stok;
+                }
+                document.querySelectorAll('.kalem-agac').forEach(sel => stokBilgisiGuncelle(sel));
+            })
+            .catch(err => {
+                console.error("Stok bilgisi çekilemedi: ", err);
+            });
+    }
+
+    // ─── Kalem Bazlı Stok Gösterimi (Tüm Birimler) ───
+    function stokBilgisiGuncelle(selectElement) {
+        const row = selectElement.closest('.kalem-satiri');
+        const bilgiElementi = row.querySelector('.kalem-stok-bilgi');
+        const secilenCins = selectElement.value;
+        const stoklar = mevcutStokData.filter(s => s.kalem === secilenCins);
+
+        if (stoklar.length > 0) {
+            bilgiElementi.innerHTML = stoklar.map(s => 
+                `<span class="badge bg-light text-primary border border-primary me-1 mb-1" style="font-weight:700;">
+                    <i class="bi bi-box-seam me-1"></i> ${s.miktar} ${s.birim}
+                </span>`
+            ).join('');
+            bilgiElementi.className = 'mt-2 d-block kalem-stok-bilgi';
+        } else {
+            bilgiElementi.innerHTML = `<i class="bi bi-info-circle"></i> Stok kaydı yok`;
+            bilgiElementi.className = 'text-muted small mt-1 d-block kalem-stok-bilgi';
+        }
+    }
+
+    // ─── Formu Sıfırla ───
+    function formuSifirla() {
+        document.getElementById('sevk_eden_cari_select').value = '';
+        document.getElementById('sevk_eden_cari_manual').value = '';
+        document.getElementById('sevk_eden_cari_manual').style.display = 'none';
+
+        document.getElementById('plaka_no').value = '';
+
+        document.getElementById('sevk_yeri_fabrika_select').value = '';
+        document.getElementById('sevk_yeri_fabrika_manual').value = '';
+        document.getElementById('sevk_yeri_fabrika_manual').style.display = 'none';
+
+        document.getElementById('sevk_yeri_fis_no').value = '';
+        document.getElementById('kalemlerContainer').innerHTML = '';
+        document.getElementById('kalemUyari').style.display = 'block';
+        kalemSayaci = 0;
+    }
+
     // ─── Modal Göster ───
     function modalGoster(basarili, mesaj) {
         const modal = new bootstrap.Modal(document.getElementById('sonucModal'));
@@ -215,18 +264,21 @@
             header.style.color = '#fff';
             icon.textContent = '✅';
             title.textContent = 'Başarılı!';
+            footer.style.display = '';
         } else {
             header.style.background = 'var(--ma-danger)';
             header.style.color = '#fff';
             icon.textContent = '❌';
             title.textContent = 'Hata!';
+            footer.style.display = 'none';
         }
         msg.textContent = mesaj;
         modal.show();
     }
 
-    // ─── Fiş Kaydet (Güncelleme) ───
+    // ─── Fiş Kaydet ───
     function fisKaydet() {
+        // Değerleri Akıllıca Topla (Select veya Manuel)
         const tarih = document.getElementById('tarih').value;
         const plaka = document.getElementById('plaka_no').value.trim();
         const fisNo = document.getElementById('sevk_yeri_fis_no').value.trim();
@@ -246,6 +298,7 @@
             return;
         }
 
+        // Kalem satırlarını topla
         const kalemDivler = document.querySelectorAll('.kalem-satiri');
         if (kalemDivler.length === 0) {
             modalGoster(false, 'En az bir sevk edilen odun cinsi satırı eklemelisiniz.');
@@ -261,6 +314,7 @@
             const miktar = parseFloat(div.querySelector('.kalem-miktar').value);
             const birim = div.querySelector('.kalem-birim').value;
             const birimFiyat = parseFloat(div.querySelector('.kalem-birim-fiyat').value);
+            const stokDisi = div.querySelector('.kalem-stok-disi').checked;
 
             if (isNaN(miktar) || miktar <= 0 || isNaN(birimFiyat) || birimFiyat < 0) {
                 gecerli = false;
@@ -273,6 +327,7 @@
                 miktar: miktar,
                 birim: birim,
                 birim_fiyat: birimFiyat,
+                stok_disi_birak: stokDisi
             });
         });
 
@@ -281,20 +336,24 @@
             return;
         }
 
+        // Gönder
         const btnKaydet = document.getElementById('btnKaydet');
+
         btnKaydet.disabled = true;
-        btnKaydet.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Güncelleniyor...';
+        btnKaydet.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
 
         const veri = {
             tarih: tarih,
             sevk_eden_cari: sevkEdenCari,
+            cari_kodu: cariSelect.value === 'other' ? null : (cariSelect.options[cariSelect.selectedIndex]?.getAttribute('data-kodu') || null),
             sevk_yeri_fabrika: fabrika,
+            fabrika_kodu: fabrikaSelect.value === 'other' ? null : (fabrikaSelect.options[fabrikaSelect.selectedIndex]?.getAttribute('data-kodu') || null),
             sevk_yeri_fis_no: fisNo,
             plaka_no: plaka,
-            kalemler: kalemler,
+            kalemler: kalemler
         };
 
-        fetch("{{ url_for('fis_duzenle', fis_id=fis.id) }}", {
+        fetch("{{ url_for('fis.yeni_fis_kaydet') }}", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(veri),
@@ -302,7 +361,7 @@
             .then(res => res.json())
             .then(data => {
                 btnKaydet.disabled = false;
-                btnKaydet.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Değişiklikleri Kaydet';
+                btnKaydet.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Fişi Kaydet';
 
                 if (data.durum === 'basarili') {
                     modalGoster(true, data.mesaj);
@@ -312,18 +371,12 @@
             })
             .catch(err => {
                 btnKaydet.disabled = false;
-                btnKaydet.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Değişiklikleri Kaydet';
+                btnKaydet.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Fişi Kaydet';
                 modalGoster(false, 'Sunucu ile bağlantı kurulamadı: ' + err.message);
             });
     }
 
-    // İlk açılışta mevcut detayları yükle
-    window.onload = function() {
-        if (mevcutDetaylar && mevcutDetaylar.length > 0) {
-            mevcutDetaylar.forEach(item => kalemEkle(item));
-        } else {
-            kalemEkle();
-        }
-    };
+    // İlk açılışta bir kalem satırı otomatik ekle
+    kalemEkle();
 </script>
 {% endblock %}

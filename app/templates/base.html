@@ -19,34 +19,34 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand navbar-brand-custom" href="{{ url_for('index') }}">
+            <a class="navbar-brand navbar-brand-custom" href="{{ url_for('main.index') }}">
                 <span class="brand-icon">🌲</span>
                 Marmara Aydoğanlar
             </a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" data-ep="index" href="{{ url_for('index') }}">
+                        <a class="nav-link" data-ep="index" href="{{ url_for('main.index') }}">
                             <i class="bi bi-house-door-fill me-1"></i> Ana Sayfa
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-ep="yeni_fis_formu" href="{{ url_for('yeni_fis_formu') }}">
+                        <a class="nav-link" data-ep="yeni_fis_formu" href="{{ url_for('fis.yeni_fis_formu') }}">
                             <i class="bi bi-plus-circle-fill me-1"></i> Yeni Fiş
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-ep="fisleri_goruntule" href="{{ url_for('fisleri_goruntule') }}">
+                        <a class="nav-link" data-ep="fisleri_goruntule" href="{{ url_for('fis.fisleri_goruntule') }}">
                             <i class="bi bi-list-ul me-1"></i> Fişler
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-ep="kartlar" href="{{ url_for('kartlar') }}">
+                        <a class="nav-link" data-ep="kartlar" href="{{ url_for('kartlar.kartlar') }}">
                             <i class="bi bi-person-badge-fill me-1"></i> Cariler
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-ep="stoklar" href="{{ url_for('stoklar') }}">
+                        <a class="nav-link" data-ep="stoklar" href="{{ url_for('stoklar.stoklar') }}">
                             <i class="bi bi-box-seam me-1"></i> Stoklar
                             {% if bekleyen_bildirim_sayisi and bekleyen_bildirim_sayisi > 0 %}
                             <span class="badge bg-danger rounded-pill ms-1">{{ bekleyen_bildirim_sayisi }}</span>
@@ -54,7 +54,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-ep="raporlar" href="{{ url_for('raporlar') }}">
+                        <a class="nav-link" data-ep="raporlar" href="{{ url_for('raporlar.raporlar') }}">
                             <i class="bi bi-file-earmark-excel-fill me-1"></i> Rapor
                         </a>
                     </li>

@@ -76,12 +76,12 @@
                                     <span class="badge bg-secondary px-3 py-2">{{ b.birim }}</span>
                                 </div>
                             </td>
-                            <td>{% if b.fis_id %}<a href="{{ url_for('fis_detay', fis_id=b.fis_id) }}" class="text-decoration-none"><i class="bi bi-truck me-1"></i>Fiş #{{ b.fis_id }}</a>{% else %}-{% endif %}</td>
+                            <td>{% if b.fis_id %}<a href="{{ url_for('fis.fis_detay', fis_id=b.fis_id) }}" class="text-decoration-none"><i class="bi bi-truck me-1"></i>Fiş #{{ b.fis_id }}</a>{% else %}-{% endif %}</td>
                             <td class="text-end pe-4">
-                                <form action="{{ url_for('stok_onayla', bildirim_id=b.id) }}" method="POST" class="d-inline">
+                                <form action="{{ url_for('stoklar.stok_onayla', bildirim_id=b.id) }}" method="POST" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-success rounded-circle shadow-sm me-1" title="Onayla"><i class="bi bi-check-lg"></i></button>
                                 </form>
-                                <form action="{{ url_for('stok_reddet', bildirim_id=b.id) }}" method="POST" class="d-inline">
+                                <form action="{{ url_for('stoklar.stok_reddet', bildirim_id=b.id) }}" method="POST" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reddet"><i class="bi bi-x-lg"></i></button>
                                 </form>
                             </td>
@@ -101,7 +101,7 @@
                             {% else %}
                             <span class="badge bg-success px-3 py-2"><i class="bi bi-arrow-up-right me-1"></i>Ekleme</span>
                             {% endif %}
-                            {% if b.fis_id %}<a href="{{ url_for('fis_detay', fis_id=b.fis_id) }}" class="text-muted text-decoration-none small"><i class="bi bi-truck me-1"></i>Fiş #{{ b.fis_id }}</a>{% endif %}
+                            {% if b.fis_id %}<a href="{{ url_for('fis.fis_detay', fis_id=b.fis_id) }}" class="text-muted text-decoration-none small"><i class="bi bi-truck me-1"></i>Fiş #{{ b.fis_id }}</a>{% endif %}
                         </div>
                         <h5 class="fw-bolder mb-1 text-dark">{{ b.cari.firma_adi }}</h5>
                         <div class="mb-3">
@@ -114,10 +114,10 @@
                             </div>
                         </div>
                         <div class="d-flex gap-2">
-                            <form action="{{ url_for('stok_onayla', bildirim_id=b.id) }}" method="POST" class="w-100">
+                            <form action="{{ url_for('stoklar.stok_onayla', bildirim_id=b.id) }}" method="POST" class="w-100">
                                 <button type="submit" class="btn btn-success w-100 py-2 fw-bold"><i class="bi bi-check-lg me-2"></i>Onayla</button>
                             </form>
-                            <form action="{{ url_for('stok_reddet', bildirim_id=b.id) }}" method="POST" class="w-100">
+                            <form action="{{ url_for('stoklar.stok_reddet', bildirim_id=b.id) }}" method="POST" class="w-100">
                                 <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-x-lg me-2"></i>Reddet</button>
                             </form>
                         </div>
@@ -157,14 +157,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for cari_isim, stoklar_grubu in mevcut_stoklar|groupby('cari.firma_adi') %}
+                        {% for cari_kodu, stoklar_grubu in mevcut_stoklar|groupby('cari_kodu') %}
+                        {% set c = stoklar_grubu[0].cari %}
                         {% set grup_id = 'mevcut-dt-' ~ loop.index %}
                         <tr class="koop-header-row" onclick="toggleKoopGrup(this, '{{ grup_id }}')" style="cursor:pointer;">
                             <td colspan="4" class="ps-3 py-3">
                                 <span class="koop-header-label">
                                     <i class="bi bi-chevron-down koop-chevron me-2"></i>
                                     <i class="bi bi-building me-2 text-success"></i>
-                                    {{ cari_isim }}
+                                    {{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2">SİLİNMİŞ</span>{% endif %}
                                 </span>
                             </td>
                         </tr>
@@ -180,7 +181,7 @@
                                     onclick="stokDuzenleModalDoldur('mevcut', this)">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form action="{{ url_for('stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                <form action="{{ url_for('stoklar.stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil"><i class="bi bi-trash"></i></button>
                                 </form>
                             </td>
@@ -193,11 +194,12 @@
             </div>
             <!-- Mobil Kartlar -->
             <div class="d-md-none p-3">
-                {% for cari_isim, stoklar_grubu in mevcut_stoklar|groupby('cari.firma_adi') %}
+                {% for cari_kodu, stoklar_grubu in mevcut_stoklar|groupby('cari_kodu') %}
+                {% set c = stoklar_grubu[0].cari %}
                 {% set grup_mob_id = 'mevcut-mob-' ~ loop.index %}
                 <div class="koop-section-header" data-bs-toggle="collapse" data-bs-target="#{{ grup_mob_id }}">
                     <span class="koop-section-name">
-                        <i class="bi bi-building me-2"></i>{{ cari_isim }}
+                        <i class="bi bi-building me-2"></i>{{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2" style="font-size:0.6rem;">SİLİNMİŞ</span>{% endif %}
                     </span>
                     <i class="bi bi-chevron-down koop-chevron"></i>
                 </div>
@@ -216,7 +218,7 @@
                                 onclick="stokDuzenleModalDoldur('mevcut', this)">
                                 <i class="bi bi-pencil-square me-2"></i>Düzenle
                             </button>
-                            <form action="{{ url_for('stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="w-100" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                            <form action="{{ url_for('stoklar.stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="w-100" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
                                 <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-trash3-fill me-2"></i>Sil</button>
                             </form>
                         </div>
@@ -259,14 +261,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for cari_isim, stoklar_grubu in gelecek_stoklar|groupby('cari.firma_adi') %}
+                        {% for cari_kodu, stoklar_grubu in gelecek_stoklar|groupby('cari_kodu') %}
+                        {% set c = stoklar_grubu[0].cari %}
                         {% set grup_id = 'gelecek-dt-' ~ loop.index %}
                         <tr class="koop-header-row" onclick="toggleKoopGrup(this, '{{ grup_id }}')" style="cursor:pointer;">
                             <td colspan="6" class="ps-3 py-3">
                                 <span class="koop-header-label">
                                     <i class="bi bi-chevron-down koop-chevron me-2"></i>
                                     <i class="bi bi-building me-2 text-success"></i>
-                                    {{ cari_isim }}
+                                    {{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2">SİLİNMİŞ</span>{% endif %}
                                 </span>
                             </td>
                         </tr>
@@ -304,14 +307,14 @@
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 {% if bekleyen_id %}
-                                <form action="{{ url_for('stok_onayla', bildirim_id=bekleyen_id) }}" method="POST" class="d-inline">
+                                <form action="{{ url_for('stoklar.stok_onayla', bildirim_id=bekleyen_id) }}" method="POST" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-success rounded-circle shadow-sm me-1" title="Onayla"><i class="bi bi-check-lg"></i></button>
                                 </form>
-                                <form action="{{ url_for('stok_reddet', bildirim_id=bekleyen_id) }}" method="POST" class="d-inline">
+                                <form action="{{ url_for('stoklar.stok_reddet', bildirim_id=bekleyen_id) }}" method="POST" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reddet"><i class="bi bi-x-lg"></i></button>
                                 </form>
                                 {% else %}
-                                <form action="{{ url_for('stok_sil', tip='gelecek', id=g.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                <form action="{{ url_for('stoklar.stok_sil', tip='gelecek', id=g.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil"><i class="bi bi-trash"></i></button>
                                 </form>
                                 {% endif %}
@@ -325,11 +328,12 @@
             </div>
             <!-- Mobil Kartlar -->
             <div class="d-md-none p-3">
-                {% for cari_isim, stoklar_grubu in gelecek_stoklar|groupby('cari.firma_adi') %}
+                {% for cari_kodu, stoklar_grubu in gelecek_stoklar|groupby('cari_kodu') %}
+                {% set c = stoklar_grubu[0].cari %}
                 {% set grup_mob_id = 'gelecek-mob-' ~ loop.index %}
                 <div class="koop-section-header" data-bs-toggle="collapse" data-bs-target="#{{ grup_mob_id }}">
                     <span class="koop-section-name">
-                        <i class="bi bi-building me-2"></i>{{ cari_isim }}
+                        <i class="bi bi-building me-2"></i>{{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2" style="font-size:0.6rem;">SİLİNMİŞ</span>{% endif %}
                     </span>
                     <i class="bi bi-chevron-down koop-chevron"></i>
                 </div>
@@ -370,15 +374,15 @@
                             </button>
                             {% if bekleyen_id %}
                             <div class="d-flex gap-2">
-                                <form action="{{ url_for('stok_onayla', bildirim_id=bekleyen_id) }}" method="POST" class="w-100">
+                                <form action="{{ url_for('stoklar.stok_onayla', bildirim_id=bekleyen_id) }}" method="POST" class="w-100">
                                     <button type="submit" class="btn btn-success w-100 py-2 fw-bold"><i class="bi bi-check-lg me-2"></i>Onayla</button>
                                 </form>
-                                <form action="{{ url_for('stok_reddet', bildirim_id=bekleyen_id) }}" method="POST" class="w-100">
+                                <form action="{{ url_for('stoklar.stok_reddet', bildirim_id=bekleyen_id) }}" method="POST" class="w-100">
                                     <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-x-lg me-2"></i>Reddet</button>
                                 </form>
                             </div>
                             {% else %}
-                            <form action="{{ url_for('stok_sil', tip='gelecek', id=g.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                            <form action="{{ url_for('stoklar.stok_sil', tip='gelecek', id=g.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
                                 <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-trash3-fill me-2"></i>Sil</button>
                             </form>
                             {% endif %}
@@ -405,7 +409,7 @@
 
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow" style="border-radius: 12px;">
-      <form action="{{ url_for('stok_ekle_manuel') }}" method="POST">
+      <form action="{{ url_for('stoklar.stok_ekle_manuel') }}" method="POST">
         <div class="modal-header" style="background-color: var(--ma-light);">
           <h5 class="modal-title text-ma-dark"><i class="bi bi-plus-circle me-2"></i>Manuel Stok Ekle/Güncelle</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -457,7 +461,7 @@
 <div class="modal fade" id="gelecekStokModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow" style="border-radius: 12px;">
-      <form action="{{ url_for('gelecek_stok_ekle') }}" method="POST">
+      <form action="{{ url_for('stoklar.gelecek_stok_ekle') }}" method="POST">
         <div class="modal-header" style="background-color: var(--ma-light);">
           <h5 class="modal-title text-ma-dark"><i class="bi bi-calendar-plus me-2"></i>Yeni Taahhüt Ekle</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -627,10 +631,19 @@ function stokDuzenleModalDoldur(tip, btn) {
     const miktar = btn.getAttribute('data-miktar');
     const birim = btn.getAttribute('data-birim');
     
+    function setSelectValueOrAdd(selectId, value) {
+        const selectElement = document.getElementById(selectId);
+        if (!Array.from(selectElement.options).some(opt => opt.value === value)) {
+            const newOption = new Option("Mevcut Seçim (Silinmiş Cari)", value, true, true);
+            selectElement.add(newOption);
+        }
+        selectElement.value = value;
+    }
+    
     if (tip === 'mevcut') {
         const form = document.getElementById('formMevcutDuzenle');
         form.action = `/stok_duzenle/mevcut/${id}`;
-        document.getElementById('duzenle_mevcut_cari').value = kodu;
+        setSelectValueOrAdd('duzenle_mevcut_cari', kodu);
         document.getElementById('duzenle_mevcut_kalem').value = kalem;
         document.getElementById('duzenle_mevcut_miktar').value = parseFloat(miktar).toFixed(2);
         document.getElementById('duzenle_mevcut_birim').value = birim;
@@ -642,7 +655,7 @@ function stokDuzenleModalDoldur(tip, btn) {
         const form = document.getElementById('formGelecekDuzenle');
         form.action = `/stok_duzenle/gelecek/${id}`;
         document.getElementById('duzenle_gelecek_tarih').value = tarih;
-        document.getElementById('duzenle_gelecek_cari').value = kodu;
+        setSelectValueOrAdd('duzenle_gelecek_cari', kodu);
         document.getElementById('duzenle_gelecek_kalem').value = kalem;
         document.getElementById('duzenle_gelecek_miktar').value = parseFloat(miktar).toFixed(2);
         document.getElementById('duzenle_gelecek_birim').value = birim;

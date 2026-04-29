@@ -66,24 +66,34 @@
                     <label class="form-label text-muted small fw-bold" for="filter-cari">Cari Filtresi</label>
                     <div class="input-group shadow-sm rounded-3">
                         <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="bi bi-person-badge"></i></span>
-                        <select class="form-select border-start-0 rounded-end-3" id="filter-cari">
+                        <select class="form-select border-start-0 rounded-end-3" id="filter-cari" onchange="toggleManualInput('filter-cari')">
                             <option value="">-- Tüm Cariler --</option>
                             {% for c in cariler %}
-                            <option value="{{ c.firma_adi }}">{{ c.firma_adi }}</option>
+                            <option value="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
                             {% endfor %}
+                            <option value="other">-- Diğer / Manuel Giriş --</option>
                         </select>
+                    </div>
+                    <div class="mt-2" id="filter-cari-manual-container" style="display:none;">
+                        <input type="text" class="form-control form-control-sm" id="filter-cari-manual" placeholder="Manuel firma adı girin (örn: AYDOĞANLAR)">
+                        <div class="form-text text-muted" style="font-size: 0.65rem;">Eski fişlerdeki yazıma göre arama yapar.</div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label text-muted small fw-bold" for="filter-fabrika">Fabrika Filtresi</label>
                     <div class="input-group shadow-sm rounded-3">
                         <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="bi bi-factory"></i></span>
-                        <select class="form-select border-start-0 rounded-end-3" id="filter-fabrika">
+                        <select class="form-select border-start-0 rounded-end-3" id="filter-fabrika" onchange="toggleManualInput('filter-fabrika')">
                             <option value="">-- Tüm Fabrikalar --</option>
                             {% for f in fabrikalar %}
-                            <option value="{{ f.firma_adi }}">{{ f.firma_adi }}</option>
+                            <option value="{{ f.firma_kodu }}">{{ f.firma_adi }}</option>
                             {% endfor %}
+                            <option value="other">-- Diğer / Manuel Giriş --</option>
                         </select>
+                    </div>
+                    <div class="mt-2" id="filter-fabrika-manual-container" style="display:none;">
+                        <input type="text" class="form-control form-control-sm" id="filter-fabrika-manual" placeholder="Manuel fabrika adı girin...">
+                        <div class="form-text text-muted" style="font-size: 0.65rem;">Eski fişlerdeki yazıma göre arama yapar.</div>
                     </div>
                 </div>
             </div>
@@ -212,12 +222,44 @@
 
 {% block scripts %}
 <script>
-    const RAPOR_INDIR_URL = "{{ url_for('rapor_indir') }}";
-    const RAPOR_INDIR_PDF_URL = "{{ url_for('rapor_indir_pdf') }}";
+    const RAPOR_INDIR_URL = "{{ url_for('raporlar.rapor_indir') }}";
+    const RAPOR_INDIR_PDF_URL = "{{ url_for('raporlar.rapor_indir_pdf') }}";
     const TURKCE_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
+    function toggleManualInput(id) {
+        const select = document.getElementById(id);
+        const manualContainer = document.getElementById(id + '-manual-container');
+        if (select.value === 'other') {
+            manualContainer.style.display = 'block';
+            document.getElementById(id + '-manual').focus();
+        } else {
+            manualContainer.style.display = 'none';
+            document.getElementById(id + '-manual').value = '';
+        }
+    }
+
     function getFirmaFiltreleri() {
-        return `&cari_adi=${encodeURIComponent(document.getElementById("filter-cari").value)}&fabrika_adi=${encodeURIComponent(document.getElementById("filter-fabrika").value)}`;
+        const cariSelectValue = document.getElementById("filter-cari").value;
+        const fabrikaSelectValue = document.getElementById("filter-fabrika").value;
+        
+        let cariKodu = "";
+        let cariAdi = "";
+        let fabrikaKodu = "";
+        let fabrikaAdi = "";
+
+        if (cariSelectValue === 'other') {
+            cariAdi = document.getElementById("filter-cari-manual").value.trim();
+        } else {
+            cariKodu = cariSelectValue;
+        }
+
+        if (fabrikaSelectValue === 'other') {
+            fabrikaAdi = document.getElementById("filter-fabrika-manual").value.trim();
+        } else {
+            fabrikaKodu = fabrikaSelectValue;
+        }
+        
+        return `&cari_kodu=${encodeURIComponent(cariKodu)}&cari_adi=${encodeURIComponent(cariAdi)}&fabrika_kodu=${encodeURIComponent(fabrikaKodu)}&fabrika_adi=${encodeURIComponent(fabrikaAdi)}`;
     }
 
     function raporHizliIndir(filtre, format = 'excel') {

@@ -1,54 +1,55 @@
-# 🌲 WoodERP - Modern Ahşap İşletme Yönetim Sistemi
+# 🌲 WoodERP - Clean Architecture Wood Management System
 
 ![WoodERP Banner](file:///C:/Users/abdul/.gemini/antigravity/brain/7abda032-bba7-4919-8370-3917cc933521/wood_erp_banner_1777975588676.png)
 
-## 🇹🇷 Türkçe Açıklama
-WoodERP, ahşap ve kereste sektöründeki işletmeler için özel olarak tasarlanmış, süreç yönetimini dijitalleştiren kapsamlı bir ERP çözümüdür. Stok takibinden raporlamaya kadar tüm operasyonları modern ve kullanıcı dostu bir arayüzle yönetmenizi sağlar.
+## 🇹🇷 Proje Hakkında (Teknik Detaylar)
+WoodERP, ahşap endüstrisi için geliştirilmiş, **Clean Architecture** (Temiz Mimari) prensiplerini temel alan bir kurumsal kaynak planlama sistemidir. Proje, ölçeklenebilirlik ve sürdürülebilirlik amacıyla monolitik yapıdan modüler bir yapıya refactor edilmiştir.
 
-### ✨ Öne Çıkan Özellikler
-*   **Akıllı Stok Yönetimi:** Kereste türlerine ve birimlerine (Ton, Ster vb.) göre detaylı envanter takibi.
-*   **Fiş ve Makbuz Sistemi:** Alış ve satış işlemlerini hızlıca kaydedin ve takip edin.
-*   **Gelişmiş Raporlama:** İşletme performansını analiz etmek için PDF formatında profesyonel raporlar oluşturun.
-*   **Modern Arayüz:** Glassmorphism ve karanlık mod desteği ile premium kullanıcı deneyimi.
-*   **İlişkisel Veri Yapısı:** Firmalar ve stoklar arasında hatasız veri bütünlüğü.
-
-### 🛠️ Teknoloji Yığını
-*   **Backend:** Python & Flask
-*   **Database:** SQLAlchemy (SQLite/PostgreSQL)
-*   **Frontend:** Vanilla JS & CSS3 (Modern UI Patterns)
-*   **Deployment:** PythonAnywhere optimized
+### 🏗️ Mimari Yapı
+*   **Separation of Concerns:** Uygulama mantığı (App), Veri modelleri (Models) ve Arayüz (Templates/Static) tamamen birbirinden ayrılmıştır.
+*   **Veritabanı Yönetimi:** Flask-Migrate (Alembic) ile veritabanı şeması versiyonlanmaktadır. İlişkisel veri bütünlüğü (Foreign Key constraints) ön plandadır.
+*   **Routing:** Flask Blueprints kullanılarak modüler bir rota yönetimi sağlanmıştır.
+*   **UI/UX:** Vanilla CSS kullanılarak modern, responsive ve glassmorphism odaklı bir tasarım dili oluşturulmuştur. Harici ağır kütüphaneler yerine optimize edilmiş özel bileşenler tercih edilmiştir.
 
 ---
 
-## 🇷🇺 Описание на русском
-WoodERP — это комплексная ERP-система, специально разработанная для предприятий деревообрабатывающей и лесной промышленности. Она позволяет цифровизировать все бизнес-процессы, от складского учета до формирования отчетности, используя современный и интуитивно понятный интерфейс.
+## 🇷🇺 О проекте (Технические детали)
+WoodERP — это система планирования ресурсов предприятия для деревообрабатывающей промышленности, построенная на принципах **Clean Architecture**. Проект прошел рефакторинг от монолитной структуры к модульной для обеспечения масштабируемости и удобства поддержки.
 
-### ✨ Основные возможности
-*   **Умное управление складом:** Детальный учет древесины по типам и единицам измерения (тонны, кубометры и т.д.).
-*   **Система учета квитанций:** Быстрая регистрация и отслеживание операций купли-продажи.
-*   **Продвинутая отчетность:** Создание профессиональных отчетов в формате PDF для анализа эффективности бизнеса.
-*   **Современный интерфейс:** Премиальный пользовательский опыт с поддержкой эффектов матового стекла (glassmorphism).
-*   **Целостность данных:** Надежная реляционная структура данных для связи между компаниями и запасами.
+### 🏗️ Архитектурная структура
+*   **Разделение ответственности (SoC):** Логика приложения (App), модели данных (Models) и интерфейс (Templates/Static) полностью изолированы друг от друга.
+*   **Управление БД:** Схема базы данных версионируется с помощью Flask-Migrate (Alembic). Особое внимание уделено реляционной целостности данных.
+*   **Маршрутизация:** Модульное управление роутами реализовано через Flask Blueprints.
+*   **UI/UX:** Используется современный адаптивный дизайн с акцентом на Glassmorphism, реализованный на чистом CSS без тяжелых внешних библиотек.
 
-### 🛠️ Технологический стек
-*   **Бэкенд:** Python и Flask
-*   **База данных:** SQLAlchemy
-*   **Фронтенд:** Vanilla JS и CSS3
-*   **Развертывание:** Оптимизировано для PythonAnywhere
+---
+
+## 📂 Proje Yapısı / Структура проекта
+
+```text
+WoodERP/
+├── app/                # Ana uygulama mantığı / Основная логика
+│   ├── routes/         # Modüler rotalar / Модульные роуты
+│   ├── models/         # Veritabanı modelleri / Модели БД
+│   ├── static/         # CSS & JS dosyaları / Статические файлы
+│   └── templates/      # Jinja2 şablonları / Шаблоны Jinja2
+├── migrations/         # Veritabanı göç kayıtları / Миграции БД
+├── config.py           # Konfigürasyon yönetimi / Конфигурация
+├── run.py              # Uygulama başlatıcı / Запуск приложения
+└── requirements.txt    # Bağımlılıklar / Зависимости
+```
+
+## 🛠️ Teknik Gereksinimler / Технические требования
+*   **Backend:** Python 3.x, Flask, SQLAlchemy
+*   **Database:** SQLite/PostgreSQL (Alembic for migrations)
+*   **Reporting:** PDF Generation utilities
+*   **Frontend:** HTML5, CSS3 (Modern UI), Vanilla JS
 
 ---
 
 ## 🚀 Kurulum / Установка
 
-1. Projeyi klonlayın / Клонируйте проект:
-   ```bash
-   git clone https://github.com/micsizru/WoodERP.git
-   ```
-2. Bağımlılıkları yükleyin / Установите зависимости:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Uygulamayı çalıştırın / Запустите приложение:
-   ```bash
-   python run.py
-   ```
+1. `git clone https://github.com/micsizru/WoodERP.git`
+2. `pip install -r requirements.txt`
+3. `flask db upgrade` (Veritabanı şemasını oluşturmak için / Для создания схемы БД)
+4. `python run.py`

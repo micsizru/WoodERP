@@ -1,7 +1,5 @@
 # 🌲 WoodERP - Clean Architecture Wood Management System
 
-![WoodERP Banner](file:///C:/Users/abdul/.gemini/antigravity/brain/7abda032-bba7-4919-8370-3917cc933521/wood_erp_banner_1777975588676.png)
-
 ## 🇹🇷 Proje Hakkında (Teknik Detaylar)
 WoodERP, ahşap endüstrisi için geliştirilmiş, **Clean Architecture** (Temiz Mimari) prensiplerini temel alan bir kurumsal kaynak planlama sistemidir. Proje, ölçeklenebilirlik ve sürdürülebilirlik amacıyla monolitik yapıdan modüler bir yapıya refactor edilmiştir.
 

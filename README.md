@@ -1,10 +1,10 @@
 # 🌲 WoodERP - Akıllı Kereste Takip Sistemi
 
-## 🇹🇷 İşletme Sahipleri İçin: WoodERP Nedir?
-Kereste ticaretinde geleneksel kağıt-kalem yöntemleri, zamanla takibi zorlaşan, kaybolmaya meyilli ve hata payı yüksek bir işleyişe dönüşebilir. **WoodERP**, bu karmaşayı ortadan kaldırarak işletmenizi dijital bir düzene taşır. Her bir odun cinsini, alınan fişleri ve müşteri bilgilerini tek bir merkezde toplar. Hangi depoda ne kadar stok kaldığını saniyeler içinde görmenizi sağlar ve tek tuşla profesyonel raporlar oluşturmanıza imkan tanıyarak işletme yönetimini kolaylaştırır.
+## 🇹🇷 WoodERP Nedir?
+Geleneksel kereste ticaretinde stok takibi, fiş kayıtları ve müşteri bilgileri genellikle kağıt-kalem veya karmaşık defterler üzerinden yürütülür; bu durum zamanla veri kaybına ve hatalı hesaplamalara yol açabilir. **WoodERP**, bu geleneksel süreçleri tamamen dijitalleştirerek işletmenizi modern bir düzene taşır. Her bir odun cinsini, alınan fişleri ve müşteri bilgilerini tek bir merkezde toplayarak stok durumunu anlık görmenizi sağlar ve tek tuşla profesyonel raporlar oluşturmanıza imkan tanıyarak işletme yönetimini kolaylaştırır.
 
-## 🇷🇺 Для владельцев бизнеса: Что такое WoodERP?
-Традиционные методы ведения учета в торговле древесиной с помощью бумаги и карандаша со временем становятся сложными для отслеживания и склонными к ошибкам. **WoodERP** переводит ваш бизнес на цифровой уровень, устраняя этот хаос. Система собирает в едином центре информацию о каждом виде древесины, полученных квитанциях и данных клиентов. Она позволяет за считанные секунды увидеть остатки на складе и создавать профессиональные отчеты одним нажатием кнопки, упрощая управление бизнесом.
+## 🇷🇺 Что такое WoodERP?
+В традиционной торговле древесиной складской учет, регистрация квитанций и данные клиентов часто ведутся на бумаге или в сложных журналах, что со временем может привести к потере данных и ошибкам в расчетах. **WoodERP** полностью цифровизирует эти традиционные процессы, переводя ваш бизнес на современный уровень. Объединяя учет видов древесины, квитанций и данных клиентов в едином центре, система обеспечивает мгновенный контроль остатков и позволяет создавать профессиональные отчеты одним нажатием кнопки.
 
 ---
 

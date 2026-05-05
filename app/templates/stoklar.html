@@ -181,7 +181,7 @@
                                     onclick="stokDuzenleModalDoldur('mevcut', this)">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form action="{{ url_for('stoklar.stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                <form action="{{ url_for('stoklar.stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="d-inline" onsubmit="event.preventDefault(); showConfirm('Silme Onayı', 'Bu stok kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.', () => this.submit());">
                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil"><i class="bi bi-trash"></i></button>
                                 </form>
                             </td>
@@ -218,7 +218,7 @@
                                 onclick="stokDuzenleModalDoldur('mevcut', this)">
                                 <i class="bi bi-pencil-square me-2"></i>Düzenle
                             </button>
-                            <form action="{{ url_for('stoklar.stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="w-100" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                            <form action="{{ url_for('stoklar.stok_sil', tip='mevcut', id=m.id) }}" method="POST" class="w-100" onsubmit="event.preventDefault(); showConfirm('Silme Onayı', 'Bu stok kaydını silmek istediğinize emin misiniz?', () => this.submit());">
                                 <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-trash3-fill me-2"></i>Sil</button>
                             </form>
                         </div>
@@ -314,7 +314,7 @@
                                     <button type="submit" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reddet"><i class="bi bi-x-lg"></i></button>
                                 </form>
                                 {% else %}
-                                <form action="{{ url_for('stoklar.stok_sil', tip='gelecek', id=g.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                                <form action="{{ url_for('stoklar.stok_sil', tip='gelecek', id=g.id) }}" method="POST" class="d-inline" onsubmit="event.preventDefault(); showConfirm('Silme Onayı', 'Bu taahhüt kaydını silmek istediğinize emin misiniz?', () => this.submit());">
                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil"><i class="bi bi-trash"></i></button>
                                 </form>
                                 {% endif %}
@@ -382,7 +382,7 @@
                                 </form>
                             </div>
                             {% else %}
-                            <form action="{{ url_for('stoklar.stok_sil', tip='gelecek', id=g.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?');">
+                            <form action="{{ url_for('stoklar.stok_sil', tip='gelecek', id=g.id) }}" method="POST" onsubmit="event.preventDefault(); showConfirm('Silme Onayı', 'Bu taahhüt kaydını silmek istediğinize emin misiniz?', () => this.submit());">
                                 <button type="submit" class="btn btn-danger w-100 py-2 fw-bold"><i class="bi bi-trash3-fill me-2"></i>Sil</button>
                             </form>
                             {% endif %}

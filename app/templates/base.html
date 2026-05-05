@@ -89,8 +89,30 @@
         </div>
     </footer>
 
+    <!-- ─── Global Confirmation Modal ─── -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pt-0 px-4 pb-4">
+                    <div class="confirm-icon-wrapper mb-4">
+                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2" id="confirmModalTitle">Emin misiniz?</h4>
+                    <p class="text-muted mb-4" id="confirmModalMessage">Bu işlem geri alınamaz.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-light px-4 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#confirmModal" style="border-radius: 12px;">Vazgeç</button>
+                        <button type="button" class="btn btn-danger px-4 py-2 fw-bold shadow-sm" id="confirmBtn" style="border-radius: 12px;">Evet, Sil</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Active nav link -->
+    <!-- Active nav link and Global Confirm -->
     <script>
         (function () {
             const endpoint = "{{ request.endpoint }}";
@@ -98,6 +120,24 @@
                 if (el.dataset.ep === endpoint) el.classList.add("active");
             });
         })();
+
+        // Global Confirmation Modal Logic
+        let confirmCallback = null;
+        const confirmModalElement = document.getElementById('confirmModal');
+        const confirmModal = new bootstrap.Modal(confirmModalElement);
+        const confirmBtn = document.getElementById('confirmBtn');
+
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmModalTitle').innerText = title || 'Emin misiniz?';
+            document.getElementById('confirmModalMessage').innerText = message || 'Bu işlem geri alınamaz.';
+            confirmCallback = callback;
+            confirmModal.show();
+        }
+
+        confirmBtn.addEventListener('click', function() {
+            if (confirmCallback) confirmCallback();
+            confirmModal.hide();
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

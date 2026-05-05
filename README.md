@@ -39,7 +39,7 @@ WoodERP/
 
 ## 🛠️ Teknik Gereksinimler / Технические требования
 *   **Backend:** Python 3.x, Flask, SQLAlchemy
-*   **Database:** SQLite/PostgreSQL (Alembic for migrations)
+*   **Database:** SQLite (Alembic for migrations)
 *   **Reporting:** PDF Generation utilities
 *   **Frontend:** HTML5, CSS3 (Modern UI), Vanilla JS
 

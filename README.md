@@ -1,4 +1,4 @@
-# 🌲 WoodERP - Kurumsal Mimari Yönetim Sistemi
+# 🌲 WoodERP - Akıllı Kereste Takip Sistemi
 
 ## 🇹🇷 Teknik Mimari ve Uygulama Altyapısı
 Bu proje, Flask framework'ü üzerinde **Application Factory (Uygulama Fabrikası)** ve **Blueprint (Modüler Yapı)** desenleri kullanılarak, endüstriyel standartlarda bir ERP altyapısı olarak geliştirilmiştir.

@@ -19,21 +19,21 @@
         </div>
         <div class="col-md-4">
             <label for="sevk_eden_cari" class="form-label">Sevk Eden Cari</label>
-            {% set cari_tanimli = false %}
+            {% set ns = namespace(cari_tanimli=false, fabrika_tanimli=false) %}
             {% for c in cariler %}
-                {% if c.firma_adi == fis.sevk_eden_cari %}{% set cari_tanimli = true %}{% endif %}
+                {% if c.firma_kodu == fis.cari_kodu %}{% set ns.cari_tanimli = true %}{% endif %}
             {% endfor %}
             <select class="form-select" id="sevk_eden_cari_select" onchange="toggleManualInput('sevk_eden_cari')" required>
                 <option value="" disabled>Cari seçin...</option>
                 {% for c in cariler %}
-                <option value="{{ c.firma_adi }}" data-kodu="{{ c.firma_kodu }}" {% if c.firma_adi == fis.sevk_eden_cari %}selected{% endif %}>{{ c.firma_adi }}</option>
+                <option value="{{ c.firma_kodu }}" data-adi="{{ c.firma_adi }}" {% if c.firma_kodu == fis.cari_kodu %}selected{% endif %}>{{ c.firma_adi }}</option>
                 {% endfor %}
-                <option value="other" {% if not cari_tanimli %}selected{% endif %}>-- Diğer / Manuel Giriş --</option>
+                <option value="other" {% if not ns.cari_tanimli %}selected{% endif %}>-- Diğer / Manuel Giriş --</option>
             </select>
             <input type="text" class="form-control mt-2 shadow-sm border-primary" id="sevk_eden_cari_manual"
                 placeholder="Manuel firma adı girin..." 
-                style="display:{% if not cari_tanimli %}block{% else %}none{% endif %};" 
-                value="{% if not cari_tanimli %}{{ fis.sevk_eden_cari }}{% endif %}">
+                style="display:{% if not ns.cari_tanimli %}block{% else %}none{% endif %};" 
+                value="{% if not ns.cari_tanimli %}{{ fis.sevk_eden_cari }}{% endif %}">
         </div>
         <div class="col-md-4">
             <label for="plaka_no" class="form-label">Plaka No</label>
@@ -41,21 +41,20 @@
         </div>
         <div class="col-md-6">
             <label for="sevk_yeri_fabrika" class="form-label">Sevk Yeri / Fabrika</label>
-            {% set fabrika_tanimli = false %}
             {% for f in fabrikalar %}
-                {% if f.firma_adi == fis.sevk_yeri_fabrika %}{% set fabrika_tanimli = true %}{% endif %}
+                {% if f.firma_kodu == fis.fabrika_kodu %}{% set ns.fabrika_tanimli = true %}{% endif %}
             {% endfor %}
             <select class="form-select" id="sevk_yeri_fabrika_select" onchange="toggleManualInput('sevk_yeri_fabrika')" required>
                 <option value="" disabled>Fabrika seçin...</option>
                 {% for f in fabrikalar %}
-                <option value="{{ f.firma_adi }}" data-kodu="{{ f.firma_kodu }}" {% if f.firma_adi == fis.sevk_yeri_fabrika %}selected{% endif %}>{{ f.firma_adi }}</option>
+                <option value="{{ f.firma_kodu }}" data-adi="{{ f.firma_adi }}" {% if f.firma_kodu == fis.fabrika_kodu %}selected{% endif %}>{{ f.firma_adi }}</option>
                 {% endfor %}
-                <option value="other" {% if not fabrika_tanimli %}selected{% endif %}>-- Diğer / Manuel Giriş --</option>
+                <option value="other" {% if not ns.fabrika_tanimli %}selected{% endif %}>-- Diğer / Manuel Giriş --</option>
             </select>
             <input type="text" class="form-control mt-2 shadow-sm border-info" id="sevk_yeri_fabrika_manual"
                 placeholder="Manuel fabrika adı girin..." 
-                style="display:{% if not fabrika_tanimli %}block{% else %}none{% endif %};" 
-                value="{% if not fabrika_tanimli %}{{ fis.sevk_yeri_fabrika }}{% endif %}">
+                style="display:{% if not ns.fabrika_tanimli %}block{% else %}none{% endif %};" 
+                value="{% if not ns.fabrika_tanimli %}{{ fis.sevk_yeri_fabrika }}{% endif %}">
         </div>
         <div class="col-md-6">
             <label for="sevk_yeri_fis_no" class="form-label">Sevk Yeri Fiş No</label>
@@ -146,6 +145,7 @@
         const d_miktar = varsayilan ? varsayilan.miktar : '';
         const d_birim = varsayilan ? varsayilan.birim : '';
         const d_fiyat = varsayilan ? varsayilan.birim_fiyat : '';
+        const d_stok_disi = varsayilan ? varsayilan.stok_disi : false;
 
         div.innerHTML = `
             <span class="kalem-no">Sevk Edilen Odun Cinsi ${kalemSayaci}</span>
@@ -172,6 +172,14 @@
                 <div class="col-4 col-md-3">
                     <label class="form-label">Birim Fiyat (₺)</label>
                     <input type="number" class="form-control kalem-birim-fiyat" step="0.01" min="0" placeholder="0.00" value="${d_fiyat}">
+                </div>
+                <div class="col-12 mt-1">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input kalem-stok-disi" type="checkbox" id="stokDisi-${kalemSayaci}" ${d_stok_disi ? 'checked' : ''}>
+                        <label class="form-check-label text-muted small" for="stokDisi-${kalemSayaci}">
+                            Bu kalemi stok düşümünden muaf tut (Örn: Sadece nakliye bedeli)
+                        </label>
+                    </div>
                 </div>
             </div>
         `;
@@ -234,12 +242,12 @@
         const cariSelect = document.getElementById('sevk_eden_cari_select');
         const sevkEdenCari = cariSelect.value === 'other'
             ? document.getElementById('sevk_eden_cari_manual').value.trim()
-            : cariSelect.value;
+            : (cariSelect.options[cariSelect.selectedIndex]?.getAttribute('data-adi') || '');
 
         const fabrikaSelect = document.getElementById('sevk_yeri_fabrika_select');
         const fabrika = fabrikaSelect.value === 'other'
             ? document.getElementById('sevk_yeri_fabrika_manual').value.trim()
-            : fabrikaSelect.value;
+            : (fabrikaSelect.options[fabrikaSelect.selectedIndex]?.getAttribute('data-adi') || '');
 
         if (!tarih || !sevkEdenCari || !plaka || !fabrika || !fisNo) {
             modalGoster(false, 'Lütfen tüm kamyon/fiş bilgilerini doldurun.');
@@ -262,6 +270,8 @@
             const birim = div.querySelector('.kalem-birim').value;
             const birimFiyat = parseFloat(div.querySelector('.kalem-birim-fiyat').value);
 
+            const stokDisi = div.querySelector('.kalem-stok-disi').checked;
+
             if (isNaN(miktar) || miktar <= 0 || isNaN(birimFiyat) || birimFiyat < 0) {
                 gecerli = false;
                 return;
@@ -273,6 +283,7 @@
                 miktar: miktar,
                 birim: birim,
                 birim_fiyat: birimFiyat,
+                stok_disi_birak: stokDisi
             });
         });
 
@@ -288,9 +299,9 @@
         const veri = {
             tarih: tarih,
             sevk_eden_cari: sevkEdenCari,
-            cari_kodu: cariSelect.value === 'other' ? null : (cariSelect.options[cariSelect.selectedIndex]?.getAttribute('data-kodu') || null),
+            cari_kodu: cariSelect.value === 'other' ? null : (cariSelect.value || null),
             sevk_yeri_fabrika: fabrika,
-            fabrika_kodu: fabrikaSelect.value === 'other' ? null : (fabrikaSelect.options[fabrikaSelect.selectedIndex]?.getAttribute('data-kodu') || null),
+            fabrika_kodu: fabrikaSelect.value === 'other' ? null : (fabrikaSelect.value || null),
             sevk_yeri_fis_no: fisNo,
             plaka_no: plaka,
             kalemler: kalemler,

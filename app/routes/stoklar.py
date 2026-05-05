@@ -61,7 +61,7 @@ def stoklar():
             db.session.commit()
 
     bekleyenler = StokBildirim.query.filter_by(durum='bekliyor').order_by(StokBildirim.id.desc()).all()
-    mevcut_stoklar = MevcutStok.query.join(Cari).order_by(Cari.firma_adi, MevcutStok.kalem).all()
+    mevcut_stoklar = MevcutStok.query.outerjoin(Cari).order_by(Cari.firma_adi, MevcutStok.kalem).all()
     gelecek_stoklar = GelecekStok.query.order_by(GelecekStok.teslim_tarihi.asc()).all()
     cariler = Cari.query.filter_by(aktif_mi=True).order_by(Cari.firma_adi).all()
     reddedilenler = StokBildirim.query.filter_by(durum='reddedildi').all()

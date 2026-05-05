@@ -15,9 +15,9 @@ def kartlar():
     def hacim_hesapla(firma_adi, firma_kodu, tip='cari'):
         sorgu_base = db.session.query(db.func.sum(FisDetayi.toplam_tutar)).join(Fis)
         if tip == 'cari':
-            sorgu_base = sorgu_base.filter(db.or_(Fis.sevk_eden_cari == firma_adi, Fis.cari_kodu == firma_kodu))
+            sorgu_base = sorgu_base.filter(Fis.cari_kodu == firma_kodu)
         else:
-            sorgu_base = sorgu_base.filter(db.or_(Fis.sevk_yeri_fabrika == firma_adi, Fis.fabrika_kodu == firma_kodu))
+            sorgu_base = sorgu_base.filter(Fis.fabrika_kodu == firma_kodu)
         
         tum_zamanlar = sorgu_base.scalar() or 0.0
         bu_ay = sorgu_base.filter(Fis.tarih >= bu_ay_baslangic.date()).scalar() or 0.0

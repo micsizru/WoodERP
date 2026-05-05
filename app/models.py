@@ -46,6 +46,7 @@ class FisDetayi(db.Model):
     birim = db.Column(db.String(20), nullable=False)
     birim_fiyat = db.Column(db.Float, nullable=False)
     toplam_tutar = db.Column(db.Float, nullable=False)
+    stok_disi = db.Column(db.Boolean, default=False, nullable=False)
 
     def __repr__(self):
         return f"<FisDetayi {self.id} – {self.agac_cinsi}>"

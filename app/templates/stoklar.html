@@ -165,7 +165,7 @@
                                 <span class="koop-header-label">
                                     <i class="bi bi-chevron-down koop-chevron me-2"></i>
                                     <i class="bi bi-building me-2 text-success"></i>
-                                    {{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2">SİLİNMİŞ</span>{% endif %}
+                                    {{ c.firma_adi }} ({{ c.firma_kodu }}){% if not c.aktif_mi %} <span class="badge bg-danger ms-2">SİLİNMİŞ</span>{% endif %}
                                 </span>
                             </td>
                         </tr>
@@ -199,7 +199,7 @@
                 {% set grup_mob_id = 'mevcut-mob-' ~ loop.index %}
                 <div class="koop-section-header" data-bs-toggle="collapse" data-bs-target="#{{ grup_mob_id }}">
                     <span class="koop-section-name">
-                        <i class="bi bi-building me-2"></i>{{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2" style="font-size:0.6rem;">SİLİNMİŞ</span>{% endif %}
+                        <i class="bi bi-building me-2"></i>{{ c.firma_adi }} ({{ c.firma_kodu }}){% if not c.aktif_mi %} <span class="badge bg-danger ms-2" style="font-size:0.6rem;">SİLİNMİŞ</span>{% endif %}
                     </span>
                     <i class="bi bi-chevron-down koop-chevron"></i>
                 </div>
@@ -333,7 +333,7 @@
                 {% set grup_mob_id = 'gelecek-mob-' ~ loop.index %}
                 <div class="koop-section-header" data-bs-toggle="collapse" data-bs-target="#{{ grup_mob_id }}">
                     <span class="koop-section-name">
-                        <i class="bi bi-building me-2"></i>{{ c.firma_adi }}{% if not c.aktif_mi %} <span class="badge bg-danger ms-2" style="font-size:0.6rem;">SİLİNMİŞ</span>{% endif %}
+                        <i class="bi bi-building me-2"></i>{{ c.firma_adi }} ({{ c.firma_kodu }}){% if not c.aktif_mi %} <span class="badge bg-danger ms-2" style="font-size:0.6rem;">SİLİNMİŞ</span>{% endif %}
                     </span>
                     <i class="bi bi-chevron-down koop-chevron"></i>
                 </div>

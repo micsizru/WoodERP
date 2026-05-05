@@ -29,8 +29,8 @@
             <tr>
                 <td><strong>{{ fis.id }}</strong></td>
                 <td>{{ fis.tarih.strftime('%d.%m.%Y') }}</td>
-                <td>{{ fis.guncel_sevk_eden_cari }}</td>
-                <td>{{ fis.guncel_sevk_yeri_fabrika }}</td>
+                <td>{{ fis.guncel_sevk_eden_cari }}{% if fis.cari_kodu %} <small class="text-muted">({{ fis.cari_kodu }})</small>{% endif %}</td>
+                <td>{{ fis.guncel_sevk_yeri_fabrika }}{% if fis.fabrika_kodu %} <small class="text-muted">({{ fis.fabrika_kodu }})</small>{% endif %}</td>
                 <td>{{ fis.plaka_no }}</td>
                 <td>
                     <span class="badge rounded-pill" style="background:var(--ma-primary);">
@@ -38,15 +38,15 @@
                     </span>
                 </td>
                 <td class="text-center">
-                    <div class="d-flex justify-content-center gap-1">
-                        <a href="{{ url_for('fis.fis_detay', fis_id=fis.id) }}" class="btn btn-sm btn-ma-accent" title="Detay">
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('fis.fis_detay', fis_id=fis.id) }}" class="btn btn-table-action btn-ma-accent" title="Detay">
                             <i class="bi bi-eye-fill"></i>
                         </a>
-                        <a href="{{ url_for('fis.fis_duzenle', fis_id=fis.id) }}" class="btn btn-sm btn-ma-info-subtle text-info" title="Düzenle">
+                        <a href="{{ url_for('fis.fis_duzenle', fis_id=fis.id) }}" class="btn btn-table-action btn-ma-info-subtle" title="Düzenle">
                             <i class="bi bi-pencil-square"></i>
                         </a>
                         <div class="dropdown d-inline-block">
-                            <button class="btn btn-sm btn-ma-success-subtle text-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="İndir">
+                            <button class="btn btn-table-action btn-ma-success-subtle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="İndir">
                                 <i class="bi bi-download"></i>
                             </button>
                             <ul class="dropdown-menu shadow-sm border-0">
@@ -55,7 +55,7 @@
                             </ul>
                         </div>
                         <button type="button"
-                                class="btn btn-sm btn-ma-danger"
+                                class="btn btn-table-action btn-ma-danger"
                                 data-bs-toggle="modal"
                                 data-bs-target="#silModal"
                                 data-sil-url="{{ url_for('fis.fis_sil', fis_id=fis.id) }}"

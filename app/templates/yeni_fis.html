@@ -20,7 +20,7 @@
                 required>
                 <option value="" disabled selected>Cari seçin...</option>
                 {% for c in cariler %}
-                <option value="{{ c.firma_adi }}" data-kodu="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
+                <option value="{{ c.firma_kodu }}" data-adi="{{ c.firma_adi }}">{{ c.firma_adi }}</option>
                 {% endfor %}
                 <option value="other">-- Diğer / Manuel Giriş --</option>
             </select>
@@ -38,7 +38,7 @@
                 required>
                 <option value="" disabled selected>Fabrika seçin...</option>
                 {% for f in fabrikalar %}
-                <option value="{{ f.firma_adi }}" data-kodu="{{ f.firma_kodu }}">{{ f.firma_adi }}</option>
+                <option value="{{ f.firma_kodu }}" data-adi="{{ f.firma_adi }}">{{ f.firma_adi }}</option>
                 {% endfor %}
                 <option value="other">-- Diğer / Manuel Giriş --</option>
             </select>
@@ -195,7 +195,7 @@
         if (cariSelect.value === '' || cariSelect.value === 'other') return;
 
         const selectedOption = cariSelect.options[cariSelect.selectedIndex];
-        const cariKodu = selectedOption.getAttribute('data-kodu');
+        const cariKodu = cariSelect.value === 'other' ? null : (cariSelect.value || null);
         
         if (!cariKodu) return;
 
@@ -286,12 +286,12 @@
         const cariSelect = document.getElementById('sevk_eden_cari_select');
         const sevkEdenCari = cariSelect.value === 'other'
             ? document.getElementById('sevk_eden_cari_manual').value.trim()
-            : cariSelect.value;
+            : (cariSelect.options[cariSelect.selectedIndex]?.getAttribute('data-adi') || '');
 
         const fabrikaSelect = document.getElementById('sevk_yeri_fabrika_select');
         const fabrika = fabrikaSelect.value === 'other'
             ? document.getElementById('sevk_yeri_fabrika_manual').value.trim()
-            : fabrikaSelect.value;
+            : (fabrikaSelect.options[fabrikaSelect.selectedIndex]?.getAttribute('data-adi') || '');
 
         if (!tarih || !sevkEdenCari || !plaka || !fabrika || !fisNo) {
             modalGoster(false, 'Lütfen tüm kamyon/fiş bilgilerini doldurun.');
@@ -345,9 +345,9 @@
         const veri = {
             tarih: tarih,
             sevk_eden_cari: sevkEdenCari,
-            cari_kodu: cariSelect.value === 'other' ? null : (cariSelect.options[cariSelect.selectedIndex]?.getAttribute('data-kodu') || null),
+            cari_kodu: cariSelect.value === 'other' ? null : (cariSelect.value || null),
             sevk_yeri_fabrika: fabrika,
-            fabrika_kodu: fabrikaSelect.value === 'other' ? null : (fabrikaSelect.options[fabrikaSelect.selectedIndex]?.getAttribute('data-kodu') || null),
+            fabrika_kodu: fabrikaSelect.value === 'other' ? null : (fabrikaSelect.value || null),
             sevk_yeri_fis_no: fisNo,
             plaka_no: plaka,
             kalemler: kalemler

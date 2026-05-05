@@ -320,14 +320,101 @@ body {
     background: var(--ma-danger);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-weight: 600;
+    padding: 0.75rem 1.5rem;
     transition: all 0.2s ease;
 }
 
 .btn-ma-danger:hover {
     background: #b71c1c;
     color: #fff;
+}
+
+/* ─── Table Action Buttons (Desktop) ─── */
+.btn-table-action {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    transition: var(--ma-transition);
+    border: 1.5px solid transparent;
+}
+
+.btn-table-action i {
+    font-size: 1.25rem;
+}
+
+.btn-table-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.btn-table-action.dropdown-toggle::after {
+    display: none;
+}
+
+.btn-action-mini {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--ma-transition);
+    border: none;
+}
+
+.btn-action-mini i {
+    font-size: 0.9rem;
+}
+
+.btn-action-mini:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.btn-ma-info-subtle {
+    background-color: #e7f3ff;
+    color: #0d6efd !important;
+    border-color: #cfe2ff !important;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+.btn-ma-info-subtle:hover {
+    background-color: #0d6efd;
+    color: #fff !important;
+}
+
+.btn-ma-success-subtle {
+    background-color: #eaf7ed;
+    color: #198754 !important;
+    border-color: #d1e7dd !important;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+.btn-ma-success-subtle:hover {
+    background-color: #198754;
+    color: #fff !important;
+}
+
+.btn-ma-accent-subtle {
+    background-color: #f4f0ef;
+    color: var(--ma-accent) !important;
+    border-color: #e7dcd8 !important;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+.btn-ma-accent-subtle:hover {
+    background-color: var(--ma-accent);
+    color: #fff !important;
 }
 
 @media (max-width: 768px) {
@@ -567,11 +654,22 @@ body {
     vertical-align: middle;
 }
 
-.son-fis-cari-wrapper {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.son-fis-table tbody tr {
+    cursor: pointer;
+    transition: var(--ma-transition);
+}
+
+.son-fis-table tbody tr:hover {
+    background-color: rgba(27, 94, 32, 0.08) !important;
+}
+
+.son-fis-table tbody tr:hover .bi-chevron-right {
+    transform: translateX(4px);
+    color: var(--ma-primary) !important;
+}
+
+.son-fis-table .bi-chevron-right {
+    transition: all 0.2s ease;
 }
 
 /* ─── Footer ─── */

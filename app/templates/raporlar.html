@@ -69,7 +69,7 @@
                         <select class="form-select border-start-0 rounded-end-3" id="filter-cari" onchange="toggleManualInput('filter-cari')">
                             <option value="">-- Tüm Cariler --</option>
                             {% for c in cariler %}
-                            <option value="{{ c.firma_kodu }}">{{ c.firma_adi }}</option>
+                            <option value="{{ c.firma_kodu }}">{{ c.firma_adi }} ({{ c.firma_kodu }})</option>
                             {% endfor %}
                             <option value="other">-- Diğer / Manuel Giriş --</option>
                         </select>
@@ -86,7 +86,7 @@
                         <select class="form-select border-start-0 rounded-end-3" id="filter-fabrika" onchange="toggleManualInput('filter-fabrika')">
                             <option value="">-- Tüm Fabrikalar --</option>
                             {% for f in fabrikalar %}
-                            <option value="{{ f.firma_kodu }}">{{ f.firma_adi }}</option>
+                            <option value="{{ f.firma_kodu }}">{{ f.firma_adi }} ({{ f.firma_kodu }})</option>
                             {% endfor %}
                             <option value="other">-- Diğer / Manuel Giriş --</option>
                         </select>

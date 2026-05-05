@@ -14,14 +14,21 @@ def fise_firma_filtresi_ekle(sorgu, cari_kodu=None, cari_adi=None, fabrika_kodu=
     if cari_kodu:
         cari_obj = Cari.query.get(cari_kodu)
         if cari_obj:
-            sorgu = sorgu.filter(db.or_(Fis.cari_kodu == cari_kodu, Fis.sevk_eden_cari == cari_obj.firma_adi))
+            # Kod varsa: Ya kod eşleşmeli YA DA (kod boşsa ve isim eşleşiyorsa) legacy kayıt olmalı.
+            sorgu = sorgu.filter(db.or_(
+                Fis.cari_kodu == cari_kodu, 
+                db.and_(Fis.cari_kodu == None, Fis.sevk_eden_cari == cari_obj.firma_adi)
+            ))
     elif cari_adi:
         sorgu = sorgu.filter(Fis.sevk_eden_cari.ilike(f"%{cari_adi}%"))
 
     if fabrika_kodu:
         fabrika_obj = Fabrika.query.get(fabrika_kodu)
         if fabrika_obj:
-            sorgu = sorgu.filter(db.or_(Fis.fabrika_kodu == fabrika_kodu, Fis.sevk_yeri_fabrika == fabrika_obj.firma_adi))
+            sorgu = sorgu.filter(db.or_(
+                Fis.fabrika_kodu == fabrika_kodu, 
+                db.and_(Fis.fabrika_kodu == None, Fis.sevk_yeri_fabrika == fabrika_obj.firma_adi)
+            ))
     elif fabrika_adi:
         sorgu = sorgu.filter(Fis.sevk_yeri_fabrika.ilike(f"%{fabrika_adi}%"))
         

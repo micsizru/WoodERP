@@ -1,53 +1,39 @@
-# 🌲 WoodERP - Clean Architecture Wood Management System
+# 🌲 WoodERP - Modüler Ahşap Yönetim Sistemi
 
-## 🇹🇷 Proje Hakkında (Teknik Detaylar)
-WoodERP, ahşap endüstrisi için geliştirilmiş, **Clean Architecture** (Temiz Mimari) prensiplerini temel alan bir kurumsal kaynak planlama sistemidir. Proje, ölçeklenebilirlik ve sürdürülebilirlik amacıyla monolitik yapıdan modüler bir yapıya refactor edilmiştir.
+## 🇹🇷 Proje Uygulama Mantığı ve Teknik Akış
+Bu proje, monolitik bir yapının parçalanarak **Uygulama Fabrikası (App Factory)** deseniyle yeniden kurgulanmasıdır. Sistemin çalışma mantığı aşağıdaki teknik temel üzerine kuruludur:
 
-### 🏗️ Mimari Yapı
-*   **Separation of Concerns:** Uygulama mantığı (App), Veri modelleri (Models) ve Arayüz (Templates/Static) tamamen birbirinden ayrılmıştır.
-*   **Veritabanı Yönetimi:** Flask-Migrate (Alembic) ile veritabanı şeması versiyonlanmaktadır. İlişkisel veri bütünlüğü (Foreign Key constraints) ön plandadır.
-*   **Routing:** Flask Blueprints kullanılarak modüler bir rota yönetimi sağlanmıştır.
-*   **UI/UX:** Vanilla CSS kullanılarak modern, responsive ve glassmorphism odaklı bir tasarım dili oluşturulmuştur. Harici ağır kütüphaneler yerine optimize edilmiş özel bileşenler tercih edilmiştir.
-
----
-
-## 🇷🇺 О проекте (Технические детали)
-WoodERP — это система планирования ресурсов предприятия для деревообрабатывающей промышленности, построенная на принципах **Clean Architecture**. Проект прошел рефакторинг от монолитной структуры к модульной для обеспечения масштабируемости и удобства поддержки.
-
-### 🏗️ Архитектурная структура
-*   **Разделение ответственности (SoC):** Логика приложения (App), модели данных (Models) и интерфейс (Templates/Static) полностью изолированы друг от друга.
-*   **Управление БД:** Схема базы данных версионируется с помощью Flask-Migrate (Alembic). Особое внимание уделено реляционной целостности данных.
-*   **Маршрутизация:** Модульное управление роутами реализовано через Flask Blueprints.
-*   **UI/UX:** Используется современный адаптивный дизайн с акцентом на Glassmorphism, реализованный на чистом CSS без тяжелых внешних библиотек.
+### ⚙️ Uygulama Yaşam Döngüsü
+1.  **Başlatma (Bootstrapping):** `run.py` dosyası, `app/__init__.py` içerisindeki `create_app()` fonksiyonunu tetikler. Bu aşamada konfigürasyonlar yüklenir ve SQLAlchemy ORM ile veritabanı bağlantısı kurulur.
+2.  **Modüler Rotalama (Blueprints):** Her modül (Stoklar, Raporlar, Fişler) bağımsız birer `Blueprint` olarak tanımlanmıştır. Bu, kodun okunabilirliğini ve bakımını kolaylaştırır.
+3.  **İş Mantığı ve Veri İşleme:** 
+    *   Kullanıcıdan gelen ham veriler route katmanında karşılanır.
+    *   `app/models/` altındaki sınıflar aracılığıyla veritabanı sorguları (ORM) yürütülür.
+    *   İlişkisel tablolar (Foreign Keys) kullanılarak, örneğin bir stok girişi yapıldığında ilgili firma ve birim bilgileri otomatik olarak eşleştirilir.
+4.  **Sunucu Taraflı Render (Jinja2):** İşlenen veriler, Jinja2 motoru ile HTML şablonlarına gömülerek kullanıcıya ulaştırılır. CSS katmanında özel `root` değişkenleri ile dinamik bir tema yönetimi sağlanmıştır.
 
 ---
 
-## 📂 Proje Yapısı / Структура проекта
+## 🇷🇺 Логика работы приложения и технический процесс
+Проект представляет собой рефакторинг монолитной структуры с использованием паттерна **App Factory**. Логика работы системы основана на следующих технических принципах:
 
-```text
-WoodERP/
-├── app/                # Ana uygulama mantığı / Основная логика
-│   ├── routes/         # Modüler rotalar / Модульные роуты
-│   ├── models/         # Veritabanı modelleri / Модели БД
-│   ├── static/         # CSS & JS dosyaları / Статические файлы
-│   └── templates/      # Jinja2 şablonları / Шаблоны Jinja2
-├── migrations/         # Veritabanı göç kayıtları / Миграции БД
-├── config.py           # Konfigürasyon yönetimi / Конфигурация
-├── run.py              # Uygulama başlatıcı / Запуск приложения
-└── requirements.txt    # Bağımlılıklar / Зависимости
-```
-
-## 🛠️ Teknik Gereksinimler / Технические требования
-*   **Backend:** Python 3.x, Flask, SQLAlchemy
-*   **Database:** SQLite (Alembic for migrations)
-*   **Reporting:** PDF Generation utilities
-*   **Frontend:** HTML5, CSS3 (Modern UI), Vanilla JS
+### ⚙️ Жизненный цикл приложения
+1.  **Инициализация:** Файл `run.py` запускает функцию `create_app()` в `app/__init__.py`. На этом этапе загружаются конфигурации и устанавливается соединение с БД через SQLAlchemy.
+2.  **Модульная маршрутизация (Blueprints):** Каждый модуль (Склады, Отчеты, Квитанции) определен как независимый `Blueprint`.
+3.  **Бизнес-логика и обработка данных:** 
+    *   Сырые данные от пользователя принимаются на уровне маршрутов (routes).
+    *   Запросы к базе данных выполняются через классы в `app/models/` с использованием ORM.
+    *   Связанные таблицы (Foreign Keys) обеспечивают автоматическое сопоставление данных.
+4.  **Серверный рендеринг (Jinja2):** Обработанные данные передаются в шаблоны HTML через движок Jinja2.
 
 ---
 
-## 🚀 Kurulum / Установка
+## 🛠️ Teknik Envanter
+*   **Flask & SQLAlchemy:** Veri yönetimi ve API katmanı.
+*   **Alembic:** Veritabanı şema değişikliklerinin (migration) takibi.
+*   **Jinja2 & CSS3:** Dinamik arayüz ve modern tasarım dili.
 
-1. `git clone https://github.com/micsizru/WoodERP.git`
-2. `pip install -r requirements.txt`
-3. `flask db upgrade` (Veritabanı şemasını oluşturmak için / Для создания схемы БД)
-4. `python run.py`
+## 🚀 Hızlı Başlangıç
+1. `pip install -r requirements.txt`
+2. `flask db upgrade`
+3. `python run.py`

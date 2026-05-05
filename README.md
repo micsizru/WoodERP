@@ -1,5 +1,14 @@
 # 🌲 WoodERP - Akıllı Kereste Takip Sistemi
 
+## 🇹🇷 İşletme Sahipleri İçin: WoodERP Nedir?
+Kereste ticaretinde geleneksel kağıt-kalem yöntemleri, zamanla takibi zorlaşan, kaybolmaya meyilli ve hata payı yüksek bir işleyişe dönüşebilir. **WoodERP**, bu karmaşayı ortadan kaldırarak işletmenizi dijital bir düzene taşır. Her bir odun cinsini, alınan fişleri ve müşteri bilgilerini tek bir merkezde toplar. Hangi depoda ne kadar stok kaldığını saniyeler içinde görmenizi sağlar ve tek tuşla profesyonel raporlar oluşturmanıza imkan tanıyarak işletme yönetimini kolaylaştırır.
+
+## 🇷🇺 Для владельцев бизнеса: Что такое WoodERP?
+Традиционные методы ведения учета в торговле древесиной с помощью бумаги и карандаша со временем становятся сложными для отслеживания и склонными к ошибкам. **WoodERP** переводит ваш бизнес на цифровой уровень, устраняя этот хаос. Система собирает в едином центре информацию о каждом виде древесины, полученных квитанциях и данных клиентов. Она позволяет за считанные секунды увидеть остатки на складе и создавать профессиональные отчеты одним нажатием кнопки, упрощая управление бизнесом.
+
+---
+
+
 ## 🇹🇷 Teknik Mimari ve Uygulama Altyapısı
 Bu proje, Flask framework'ü üzerinde **Application Factory (Uygulama Fabrikası)** ve **Blueprint (Modüler Yapı)** desenleri kullanılarak, endüstriyel standartlarda bir ERP altyapısı olarak geliştirilmiştir.
 

@@ -119,10 +119,10 @@ def rapor_indir():
         })
 
     if baslangic and bitis:
-        dosya_adi = f"Marmara_Aydoganlar_Rapor_{baslangic}_{bitis}.xlsx"
+        dosya_adi = f"WoodERP_Rapor_{baslangic}_{bitis}.xlsx"
     else:
         tarih_str = datetime.now().strftime("%Y-%m-%d")
-        dosya_adi = f"Marmara_Aydoganlar_Rapor_Tumu_{tarih_str}.xlsx"
+        dosya_adi = f"WoodERP_Rapor_Tumu_{tarih_str}.xlsx"
 
     return jsonify({
         "filename": dosya_adi,
@@ -208,7 +208,7 @@ def rapor_indir_pdf():
     </head>
     <body>
         <div class="header">
-            <h1 style="color: #1B5E20; margin-bottom: 5px;">Marmara Aydoğanlar</h1>
+            <h1 style="color: #1B5E20; margin-bottom: 5px;">WoodERP</h1>
             <h3 style="margin-top: 5px;">Genel Sevkiyat Raporu</h3>
         </div>
 
@@ -293,7 +293,7 @@ def rapor_indir_pdf():
         pdf_config = get_pdf_config(current_app)
         pdf_bytes = pdfkit.from_string(html_content, False, options=options, configuration=pdf_config)
         output = io.BytesIO(pdf_bytes)
-        dosya_adi = f"Marmara_Aydoganlar_Rapor_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+        dosya_adi = f"WoodERP_Rapor_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
         
         return send_file(
             output,

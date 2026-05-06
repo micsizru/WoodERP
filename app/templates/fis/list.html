@@ -50,7 +50,7 @@
                                 <i class="bi bi-download"></i>
                             </button>
                             <ul class="dropdown-menu shadow-sm border-0">
-                                <li><a class="dropdown-item" href="{{ url_for('fis.tek_fis_excel', fis_id=fis.id) }}"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel Olarak</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="indirFisExcelJS(event, '{{ url_for('fis.tek_fis_excel', fis_id=fis.id) }}')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="indirFisPDFJS(event, '{{ url_for('fis.tek_fis_pdf', fis_id=fis.id) }}', 'Fis_{{ fis.id }}_{{ fis.guncel_sevk_eden_cari | replace(' ', '_') }}')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</a></li>
                             </ul>
                         </div>
@@ -129,7 +129,7 @@
                             <i class="bi bi-download me-2"></i> İndir
                         </button>
                         <ul class="dropdown-menu w-100 shadow-sm border-0 mt-1">
-                            <li><a class="dropdown-item py-2" href="{{ url_for('fis.tek_fis_excel', fis_id=fis.id) }}"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel Olarak</a></li>
+                            <li><a class="dropdown-item py-2" href="#" onclick="indirFisExcelJS(event, '{{ url_for('fis.tek_fis_excel', fis_id=fis.id) }}')"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Excel Olarak</a></li>
                             <li><a class="dropdown-item py-2" href="#" onclick="indirFisPDFJS(event, '{{ url_for('fis.tek_fis_pdf', fis_id=fis.id) }}', 'Fis_{{ fis.id }}_{{ fis.guncel_sevk_eden_cari | replace(' ', '_') }}')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</a></li>
                         </ul>
                     </div>
@@ -194,6 +194,7 @@
 
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <script>
     document.getElementById('silModal').addEventListener('show.bs.modal', function (e) {
         const btn = e.relatedTarget;
@@ -320,6 +321,77 @@
         } catch (error) {
             console.error(error);
             alert("PDF indirilirken bir hata oluştu.");
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.style.pointerEvents = 'auto';
+        }
+    }
+
+    async function indirFisExcelJS(event, url) {
+        if (event) event.preventDefault();
+        const btn = event.target.closest('a') || event.target;
+        const originalHtml = btn.innerHTML;
+
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Hazırlanıyor...';
+        btn.style.pointerEvents = 'none';
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Sunucu hatası");
+            
+            const result = await response.json();
+            const data = result.data;
+            const fileName = result.filename || "Fis.xlsx";
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Fiş Detayı');
+
+            const columns = [
+                { header: "Fiş No", key: "Fiş No", width: 10 },
+                { header: "Tarih", key: "Tarih", width: 15 },
+                { header: "Sevk Eden Cari", key: "Sevk Eden Cari", width: 30 },
+                { header: "Fabrika", key: "Fabrika", width: 30 },
+                { header: "Sevkiyat Fiş No", key: "Sevkiyat Fiş No", width: 20 },
+                { header: "Plaka No", key: "Plaka No", width: 15 },
+                { header: "Ağaç Cinsi", key: "Ağaç Cinsi", width: 20 },
+                { header: "Çap", key: "Çap", width: 10 },
+                { header: "Miktar", key: "Miktar", width: 12 },
+                { header: "Birim", key: "Birim", width: 10 },
+                { header: "Birim Fiyat", key: "Birim Fiyat", width: 15 },
+                { header: "Toplam Tutar", key: "Toplam Tutar", width: 15 }
+            ];
+            worksheet.columns = columns;
+            worksheet.addRows(data);
+
+            // Stilize et
+            const headerRow = worksheet.getRow(1);
+            headerRow.eachCell((cell) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B5E20' } };
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { horizontal: 'center' };
+            });
+
+            worksheet.eachRow((row, rowNumber) => {
+                if (rowNumber > 1) {
+                    row.eachCell((cell) => {
+                        cell.alignment = { horizontal: 'center' };
+                        if (typeof cell.value === 'number') cell.numFmt = '#,##0.00';
+                    });
+                }
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error(error);
+            alert("Excel indirilirken bir hata oluştu.");
         } finally {
             btn.innerHTML = originalHtml;
             btn.style.pointerEvents = 'auto';

@@ -1,7 +1,9 @@
+import logging
 from datetime import date, datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
-from app.models import MevcutStok, GelecekStok, StokBildirim, Cari
+from app.models import MevcutStok, GelecekStok, StokBildirim, Cari, Fis
 from app.constants import AGAC_CINSLERI, BIRIMLER
 from app.services.stok_service import StokService
 
@@ -33,8 +35,12 @@ def stok_getir(cari_kodu):
             "mevcut_stok": mevcut_liste,
             "gelecek_stok": gelecek_liste
         })
+    except SQLAlchemyError as e:
+        logging.error(f"Veritabanı hatası (stok_getir - {cari_kodu}):", exc_info=True)
+        return jsonify({"durum": "hata", "mesaj": "Stok verileri çekilirken veritabanı hatası oluştu."}), 500
     except Exception as e:
-        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+        logging.critical(f"Beklenmeyen hata (stok_getir - {cari_kodu}):", exc_info=True)
+        return jsonify({"durum": "hata", "mesaj": "Sistemde beklenmeyen bir hata oluştu."}), 500
 
 
 @stoklar_bp.route("/stoklar")
@@ -42,11 +48,19 @@ def stoklar():
     bugun = date.today()
     StokService.process_future_stocks()
 
-    bekleyenler = StokBildirim.query.filter_by(durum='bekliyor').order_by(StokBildirim.id.desc()).all()
+    bekleyenler = StokBildirim.query.outerjoin(Fis, StokBildirim.fis_id == Fis.id).filter(
+        StokBildirim.durum == 'bekliyor',
+        db.or_(StokBildirim.fis_id == None, Fis.tarih <= bugun)
+    ).order_by(StokBildirim.id.desc()).all()
+    
     mevcut_stoklar = MevcutStok.query.outerjoin(Cari).order_by(Cari.firma_adi, MevcutStok.kalem).all()
     gelecek_stoklar = GelecekStok.query.order_by(GelecekStok.teslim_tarihi.asc()).all()
     cariler = Cari.query.filter_by(aktif_mi=True).order_by(Cari.firma_adi).all()
-    reddedilenler = StokBildirim.query.filter_by(durum='reddedildi').all()
+    
+    reddedilenler = StokBildirim.query.outerjoin(Fis, StokBildirim.fis_id == Fis.id).filter(
+        StokBildirim.durum == 'reddedildi',
+        db.or_(StokBildirim.fis_id == None, Fis.tarih <= bugun)
+    ).all()
     
     bekleyen_gelecek_dict = {b.gelecek_stok_id: b.id for b in bekleyenler if b.gelecek_stok_id}
     reddedilen_gelecek_dict = {b.gelecek_stok_id: b.id for b in reddedilenler if b.gelecek_stok_id}

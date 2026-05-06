@@ -1,10 +1,11 @@
+import logging
 from datetime import date, datetime
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
-from app.models import Fis, FisDetayi, Cari, Fabrika, StokBildirim, MevcutStok
+from app.models import Fis, Cari, Fabrika
 from app.constants import AGAC_CINSLERI, CAPLER, BIRIMLER
 from app.utils import get_istanbul_time
-from app.services.report_service import ReportService
 from app.services.fis_service import FisService
 
 fis_bp = Blueprint('fis', __name__)
@@ -31,9 +32,18 @@ def yeni_fis_kaydet():
         veri = request.get_json()
         fis_id = FisService.create_fis(veri)
         return jsonify({"durum": "basarili", "mesaj": "Fiş başarıyla kaydedildi.", "fis_id": fis_id})
+    except (ValueError, KeyError) as e:
+        db.session.rollback()
+        logging.warning(f"Kullanıcı/Veri hatası (Yeni Fiş): {e}")
+        return jsonify({"durum": "hata", "mesaj": f"Geçersiz veya eksik veri: {str(e)}"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logging.error("Veritabanı hatası (Yeni Fiş):", exc_info=True)
+        return jsonify({"durum": "hata", "mesaj": "Kayıt sırasında veritabanı hatası oluştu."}), 500
     except Exception as e:
         db.session.rollback()
-        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+        logging.critical("Bilinmeyen kritik hata (Yeni Fiş):", exc_info=True)
+        return jsonify({"durum": "hata", "mesaj": "Sistemde beklenmeyen bir hata oluştu."}), 500
 
 @fis_bp.route("/fisleri_goruntule")
 def fisleri_goruntule():
@@ -59,9 +69,18 @@ def fis_duzenle(fis_id):
             veri = request.get_json()
             FisService.update_fis(fis_id, veri)
             return jsonify({"durum": "basarili", "mesaj": "Fiş başarıyla güncellendi."})
+        except (ValueError, KeyError) as e:
+            db.session.rollback()
+            logging.warning(f"Kullanıcı/Veri hatası (Fiş Düzenle {fis_id}): {e}")
+            return jsonify({"durum": "hata", "mesaj": f"Geçersiz veya eksik veri: {str(e)}"}), 400
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logging.error(f"Veritabanı hatası (Fiş Düzenle {fis_id}):", exc_info=True)
+            return jsonify({"durum": "hata", "mesaj": "Güncelleme sırasında veritabanı hatası oluştu."}), 500
         except Exception as e:
             db.session.rollback()
-            return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+            logging.critical(f"Bilinmeyen kritik hata (Fiş Düzenle {fis_id}):", exc_info=True)
+            return jsonify({"durum": "hata", "mesaj": "Sistemde beklenmeyen bir hata oluştu."}), 500
 
     fis = Fis.query.get_or_404(fis_id)
 
@@ -94,7 +113,28 @@ def fis_duzenle(fis_id):
 @fis_bp.route("/tek_fis_excel/<int:fis_id>")
 def tek_fis_excel(fis_id):
     fis = Fis.query.get_or_404(fis_id)
-    return ReportService.generate_excel_for_fis(fis)
+    
+    veriler = []
+    for d in fis.detaylar:
+        veriler.append({
+            "Fiş No": fis.id,
+            "Tarih": fis.tarih.strftime("%d.%m.%Y"),
+            "Sevk Eden Cari": fis.guncel_sevk_eden_cari,
+            "Fabrika": fis.guncel_sevk_yeri_fabrika,
+            "Sevkiyat Fiş No": fis.sevk_yeri_fis_no,
+            "Plaka No": fis.plaka_no,
+            "Ağaç Cinsi": d.agac_cinsi,
+            "Çap": d.cap,
+            "Miktar": d.miktar,
+            "Birim": d.birim,
+            "Birim Fiyat": d.birim_fiyat,
+            "Toplam Tutar": d.toplam_tutar,
+        })
+        
+    return jsonify({
+        "filename": f"Fis_{fis.id}_{fis.guncel_sevk_eden_cari.replace(' ', '_')}_{fis.tarih}.xlsx",
+        "data": veriler
+    })
 
 @fis_bp.route("/tek_fis_pdf/<int:fis_id>")
 def tek_fis_pdf(fis_id):

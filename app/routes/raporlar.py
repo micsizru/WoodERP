@@ -1,6 +1,5 @@
-import io
 from datetime import date, datetime
-from flask import Blueprint, render_template, request, send_file, flash, redirect, url_for, current_app, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from app.extensions import db
 from app.models import Fis, FisDetayi, Cari, Fabrika
 from app.constants import TURKCE_AYLAR

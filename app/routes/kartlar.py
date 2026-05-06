@@ -1,5 +1,5 @@
-from datetime import timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+
 from app.extensions import db
 from app.models import Cari, Fabrika
 from app.services.kartlar_service import KartlarService

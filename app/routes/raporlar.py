@@ -1,7 +1,6 @@
 import io
 from datetime import date, datetime
-import pandas as pd
-from flask import Blueprint, render_template, request, send_file, flash, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, send_file, flash, redirect, url_for, current_app, jsonify
 from app.extensions import db
 from app.models import Fis, FisDetayi, Cari, Fabrika
 from app.constants import TURKCE_AYLAR
@@ -65,6 +64,11 @@ def rapor_indir():
     fabrika_adi = request.args.get("fabrika_adi", "")
 
     baslangic, bitis = tarih_araligi_hesapla(filtre, baslangic_str, bitis_str)
+    
+    # RAM Darboğazı Koruması: Tarih seçilmemişse (Tümü/God Mode) son 5 yılın 1 Ocak tarihinden başlat
+    if not baslangic:
+        baslangic = date(date.today().year - 5, 1, 1)
+        bitis = date.today()
 
     sorgu = (
         db.session.query(
@@ -97,58 +101,22 @@ def rapor_indir():
     cariler_dict = {c.firma_kodu: c.firma_adi for c in Cari.query.all()}
     fabrikalar_dict = {f.firma_kodu: f.firma_adi for f in Fabrika.query.all()}
 
-    df = pd.DataFrame([{
-        "Fiş No": r[0],
-        "Tarih": r[1],
-        "Sevk Eden Cari": cariler_dict.get(r[3], r[2]),
-        "Fabrika": fabrikalar_dict.get(r[5], r[4]),
-        "Sevkiyat Fiş No": r[6],
-        "Plaka No": r[7],
-        "Ağaç Cinsi": r[8],
-        "Çap": r[9],
-        "Miktar": r[10],
-        "Birim": r[11],
-        "Birim Fiyat": r[12],
-        "Toplam Tutar": r[13]
-    } for r in sonuclar]) if sonuclar else pd.DataFrame(columns=[
-        "Fiş No", "Tarih", "Sevk Eden Cari", "Fabrika",
-        "Sevkiyat Fiş No", "Plaka No", "Ağaç Cinsi", "Çap",
-        "Miktar", "Birim", "Birim Fiyat", "Toplam Tutar",
-    ])
-
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Sevkiyat Raporu")
-        ws = writer.sheets["Sevkiyat Raporu"]
-
-        from openpyxl.styles import PatternFill, Font, Alignment
-        from openpyxl.utils import get_column_letter
-
-        header_fill = PatternFill("solid", fgColor="1B5E20")
-        header_font = Font(bold=True, color="FFFFFF", size=10)
-        for cell in ws[1]:
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-
-        stripe_fill = PatternFill("solid", fgColor="F5F5F0")
-        for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
-            if row_idx % 2 == 0:
-                for cell in row:
-                    cell.fill = stripe_fill
-
-        for col_idx, column_cells in enumerate(ws.columns, start=1):
-            max_len = 0
-            for cell in column_cells:
-                try:
-                    val = str(cell.value) if cell.value is not None else ""
-                    max_len = max(max_len, len(val))
-                except Exception:
-                    pass
-            adjusted = min(max_len + 4, 50)
-            ws.column_dimensions[get_column_letter(col_idx)].width = adjusted
-
-    output.seek(0)
+    json_data = []
+    for r in sonuclar:
+        json_data.append({
+            "Fiş No": r[0],
+            "Tarih": r[1].strftime("%d.%m.%Y") if hasattr(r[1], 'strftime') else r[1],
+            "Sevk Eden Cari": cariler_dict.get(r[3], r[2]),
+            "Fabrika": fabrikalar_dict.get(r[5], r[4]),
+            "Sevkiyat Fiş No": r[6],
+            "Plaka No": r[7],
+            "Ağaç Cinsi": r[8],
+            "Çap": r[9],
+            "Miktar": r[10],
+            "Birim": r[11],
+            "Birim Fiyat": r[12],
+            "Toplam Tutar": r[13]
+        })
 
     if baslangic and bitis:
         dosya_adi = f"Marmara_Aydoganlar_Rapor_{baslangic}_{bitis}.xlsx"
@@ -156,12 +124,10 @@ def rapor_indir():
         tarih_str = datetime.now().strftime("%Y-%m-%d")
         dosya_adi = f"Marmara_Aydoganlar_Rapor_Tumu_{tarih_str}.xlsx"
 
-    return send_file(
-        output,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name=dosya_adi,
-    )
+    return jsonify({
+        "filename": dosya_adi,
+        "data": json_data
+    })
 
 @raporlar_bp.route("/rapor_indir_pdf")
 def rapor_indir_pdf():
@@ -175,6 +141,11 @@ def rapor_indir_pdf():
     fabrika_adi = request.args.get("fabrika_adi", "")
 
     baslangic, bitis = tarih_araligi_hesapla(filtre, baslangic_str, bitis_str)
+    
+    # RAM Darboğazı Koruması: Tarih seçilmemişse (Tümü/God Mode) son 5 yılın 1 Ocak tarihinden başlat
+    if not baslangic:
+        baslangic = date(date.today().year - 5, 1, 1)
+        bitis = date.today()
 
     sorgu = (
         db.session.query(

@@ -221,6 +221,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script>
     const RAPOR_INDIR_URL = "{{ url_for('raporlar.rapor_indir') }}";
     const RAPOR_INDIR_PDF_URL = "{{ url_for('raporlar.rapor_indir_pdf') }}";
@@ -263,6 +264,19 @@
     }
 
     function raporHizliIndir(filtre, format = 'excel') {
+        const e = window.event;
+        const btn = e ? e.target.closest('button') : null;
+
+        // RAM Darboğazı Koruması: Tarih alanları boşsa ve tüm zamanlar isteniyorsa uyar
+        if (filtre === 'god_mode') {
+            const baslangic = document.getElementById("input-baslangic").value;
+            const bitis = document.getElementById("input-bitis").value;
+            if (!baslangic && !bitis) {
+                const onay = confirm("Tarih aralığı seçmediniz. Tüm zamanların geçmiş verisini indirmek üzeresiniz. Bu işlem sunucuyu yorabilir ve uzun sürebilir. Devam etmek istediğinize emin misiniz?");
+                if (!onay) return;
+            }
+        }
+
         const baseUrl = format === 'pdf' ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
         let url = `${baseUrl}?filtre=${filtre}`;
         
@@ -270,10 +284,28 @@
             url += getFirmaFiltreleri();
         }
         
-        window.location.href = url;
+        if (format === 'excel') {
+            indirExcelJS(url, btn);
+        } else {
+            window.location.href = url;
+        }
     }
 
     function raporIndir(tip, format = 'excel') {
+        const e = window.event;
+        const btn = e ? e.target.closest('button') : null;
+
+        // RAM Darboğazı Koruması: 'tumu' veya 'ozel' (boş bırakılmışsa) durumunda onayla
+        if (tip === "tumu" || tip === "ozel") {
+            const baslangic = document.getElementById("input-baslangic").value;
+            const bitis = document.getElementById("input-bitis").value;
+            
+            if (!baslangic && !bitis) {
+                const onay = confirm("Tarih aralığı seçmediniz. Tüm zamanların geçmiş verisini indirmek üzeresiniz. Bu işlem sunucuyu yorabilir ve uzun sürebilir. Devam etmek istediğinize emin misiniz?");
+                if (!onay) return;
+            }
+        }
+
         const baseUrl = format === 'pdf' ? RAPOR_INDIR_PDF_URL : RAPOR_INDIR_URL;
         let url = `${baseUrl}?filtre=`;
 
@@ -305,7 +337,56 @@
         }
 
         url += getFirmaFiltreleri();
-        window.location.href = url;
+        
+        if (format === 'excel') {
+            indirExcelJS(url, btn);
+        } else {
+            window.location.href = url;
+        }
+    }
+
+    function indirExcelJS(url, btn) {
+        let originalHtml = '';
+        if (btn) {
+            originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Hazırlanıyor...';
+            btn.disabled = true;
+        }
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error("Sunucu hatası: " + response.status);
+                return response.json();
+            })
+            .then(result => {
+                const data = result.data;
+                const fileName = result.filename || "Rapor.xlsx";
+                
+                if (!data || data.length === 0) {
+                    alert("Seçili kriterlere uygun veri bulunamadı.");
+                    return;
+                }
+
+                const worksheet = XLSX.utils.json_to_sheet(data);
+                
+                const cols = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length + 2, 12) }));
+                worksheet['!cols'] = cols;
+
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Sevkiyat Raporu");
+                
+                XLSX.writeFile(workbook, fileName);
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                alert("Excel dosyası oluşturulurken bir hata meydana geldi. Lütfen tekrar deneyin.");
+            })
+            .finally(() => {
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            });
     }
 
     function haftalariGuncelle() {

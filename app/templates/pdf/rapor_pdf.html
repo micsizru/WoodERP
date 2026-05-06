@@ -1,0 +1,70 @@
+<!-- Bu şablon tam bir HTML dokümanı değil, fragment olarak yüklenir -->
+<style>
+    #rapor-pdf-container { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #333; padding: 20px; background: white; }
+    #rapor-pdf-container .header { text-align: center; margin-bottom: 20px; }
+    #rapor-pdf-container .header h1 { color: #1B5E20; margin: 0 0 5px 0; font-size: 22px; }
+    #rapor-pdf-container .header h3 { margin: 0; font-size: 13px; font-weight: normal; }
+    #rapor-pdf-container .filter-info { margin-bottom: 15px; font-weight: bold; font-size: 9px; color: #555; }
+    #rapor-pdf-container .items-table { width: 100%; border-collapse: collapse; }
+    #rapor-pdf-container .items-table th { background-color: #1B5E20; color: white; padding: 6px; text-align: center; border: 1px solid #1B5E20; font-size: 9px; }
+    #rapor-pdf-container .items-table td { padding: 5px; border: 1px solid #ddd; text-align: center; font-size: 9px; }
+    #rapor-pdf-container .items-table tr { break-inside: avoid; page-break-inside: avoid; }
+    #rapor-pdf-container .zebra-row { background-color: #F5F5F0; }
+    #rapor-pdf-container .footer { margin-top: 20px; text-align: right; font-style: italic; font-size: 9px; color: #666; }
+</style>
+<div id="rapor-pdf-container">
+    <div class="header">
+        <h1>WoodERP</h1>
+        <h3>Genel Sevkiyat Raporu</h3>
+    </div>
+
+    <div class="filter-info">
+        Kapsam: {{ baslangic if baslangic else 'Tümü' }} - {{ bitis if bitis else 'Tümü' }}<br>
+        Cari: {{ cari_isim }} | Fabrika: {{ fabrika_isim }}
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Fiş No</th>
+                <th>Tarih</th>
+                <th>Cari</th>
+                <th>Fabrika</th>
+                <th>Plaka</th>
+                <th>Cins</th>
+                <th>Çap</th>
+                <th>Miktar</th>
+                <th>Birim</th>
+                <th>Fiyat</th>
+                <th>Toplam</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in sonuclar %}
+            <tr {% if loop.index0 % 2 == 1 %}class="zebra-row"{% endif %}>
+                <td>{{ res.id }}</td>
+                <td>{{ res.tarih.strftime('%d.%m.%Y') }}</td>
+                <td>{{ res.cari }}</td>
+                <td>{{ res.fabrika }}</td>
+                <td>{{ res.plaka_no }}</td>
+                <td>{{ res.agac_cinsi }}</td>
+                <td>{{ res.cap }}</td>
+                <td>{{ res.miktar }}</td>
+                <td>{{ res.birim }}</td>
+                <td>{{ res.birim_fiyat }}</td>
+                <td style="font-weight: bold;">{{ "%.2f"|format(res.toplam_tutar) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="font-weight: bold; background-color: #eee;">
+                <td colspan="10" style="text-align: right; padding: 10px;">Genel Rapor Toplamı:</td>
+                <td style="text-align: center; padding: 10px;">{{ "%.2f"|format(toplam_genel) }} ₺</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="footer">
+        Oluşturma Tarihi: {{ datetime.now().strftime('%d.%m.%Y %H:%M') }}
+    </div>
+</div>

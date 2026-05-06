@@ -5,10 +5,10 @@ venv/
 .vscode/
 .env
 pyrightconfig.json
-duzeltilmesi-gerekenler.txt
-sustainability.txt
+.duzeltilmesi-gerekenler.txt
+.sustainability.txt
 sustainability_old_26_04_2026.txt
-run.py
+.run.py
 fix_sqlite.py
 baslat.bat
 .deprecated_monolith/

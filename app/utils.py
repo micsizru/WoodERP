@@ -3,7 +3,6 @@ from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
 import pytz
 import os
-import pdfkit
 
 def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
     bugun = date.today()
@@ -88,10 +87,3 @@ def yeni_firma_kodu_uret(tur, Cari, Fabrika):
         yeni_num = 1
         
     return f"{prefix}{yeni_num:03d}"
-
-def get_pdf_config(current_app):
-    path_wkhtmltopdf = current_app.config.get("WKHTMLTOPDF_PATH")
-    try:
-        return pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf) if os.path.exists(path_wkhtmltopdf) else None
-    except Exception:
-        return None

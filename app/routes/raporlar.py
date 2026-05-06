@@ -4,8 +4,7 @@ from flask import Blueprint, render_template, request, send_file, flash, redirec
 from app.extensions import db
 from app.models import Fis, FisDetayi, Cari, Fabrika
 from app.constants import TURKCE_AYLAR
-from app.utils import tarih_araligi_hesapla, get_pdf_config
-import pdfkit
+from app.utils import tarih_araligi_hesapla
 
 raporlar_bp = Blueprint('raporlar', __name__)
 
@@ -44,7 +43,7 @@ def raporlar():
     fabrikalar = Fabrika.query.filter_by(aktif_mi=True).order_by(Fabrika.firma_adi).all()
 
     return render_template(
-        "raporlar.html",
+        "raporlar/index.html",
         bugun=bugun.isoformat(),
         yillar=yillar,
         aylar=TURKCE_AYLAR,
@@ -189,118 +188,38 @@ def rapor_indir_pdf():
         sorgu = fise_firma_filtresi_ekle(sorgu, cari_kodu, cari_adi, fabrika_kodu, fabrika_adi)
 
     sonuclar = sorgu.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
-
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: 'DejaVu Sans', sans-serif; font-size: 10px; color: #333; }}
-            .header {{ text-align: center; margin-bottom: 20px; }}
-            .items-table {{ width: 100%; border-collapse: collapse; }}
-            .items-table th {{ background-color: #1B5E20; color: white; padding: 6px; text-align: center; border: 1px solid #1B5E20; }}
-            .items-table td {{ padding: 5px; border: 1px solid #ddd; text-align: center; }}
-            .zebra-row {{ background-color: #F5F5F0; }}
-            .footer {{ margin-top: 20px; text-align: right; font-style: italic; font-size: 9px; }}
-            .filter-info {{ margin-bottom: 15px; font-weight: bold; color: #555; }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1 style="color: #1B5E20; margin-bottom: 5px;">WoodERP</h1>
-            <h3 style="margin-top: 5px;">Genel Sevkiyat Raporu</h3>
-        </div>
-
-        <div class="filter-info">
-            Kapsam: {baslangic if baslangic else 'Tümü'} - {bitis if bitis else 'Tümü'} <br>
-            Cari: {cari_isim} | Fabrika: {fabrika_isim}
-        </div>
-
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th>Fiş No</th>
-                    <th>Tarih</th>
-                    <th>Cari</th>
-                    <th>Fabrika</th>
-                    <th>Plaka</th>
-                    <th>Cins</th>
-                    <th>Çap</th>
-                    <th>Miktar</th>
-                    <th>Birim</th>
-                    <th>Fiyat</th>
-                    <th>Toplam</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
     
+    # Detaylar için cariler ve fabrikalar sözlükleri
     cariler_dict = {c.firma_kodu: c.firma_adi for c in Cari.query.all()}
     fabrikalar_dict = {f.firma_kodu: f.firma_adi for f in Fabrika.query.all()}
 
+    # Sonuçları işleyerek listeye dök
+    islenmis_sonuclar = []
     toplam_genel = 0
-    for i, res in enumerate(sonuclar):
-        row_class = 'class="zebra-row"' if i % 2 == 1 else ''
+    for res in sonuclar:
+        row = {
+            "id": res.id,
+            "tarih": res.tarih,
+            "cari": cariler_dict.get(res.cari_kodu, res.sevk_eden_cari),
+            "fabrika": fabrikalar_dict.get(res.fabrika_kodu, res.sevk_yeri_fabrika),
+            "plaka_no": res.plaka_no,
+            "agac_cinsi": res.agac_cinsi,
+            "cap": res.cap,
+            "miktar": res.miktar,
+            "birim": res.birim,
+            "birim_fiyat": res.birim_fiyat,
+            "toplam_tutar": res.toplam_tutar
+        }
+        islenmis_sonuclar.append(row)
         toplam_genel += res.toplam_tutar
-        tarih_format = res.tarih.strftime('%d.%m.%Y')
-        guncel_cari = cariler_dict.get(res.cari_kodu, res.sevk_eden_cari)
-        guncel_fabrika = fabrikalar_dict.get(res.fabrika_kodu, res.sevk_yeri_fabrika)
-        html_content += f"""
-            <tr {row_class}>
-                <td>{res.id}</td>
-                <td>{tarih_format}</td>
-                <td>{guncel_cari}</td>
-                <td>{guncel_fabrika}</td>
-                <td>{res.plaka_no}</td>
-                <td>{res.agac_cinsi}</td>
-                <td>{res.cap}</td>
-                <td>{res.miktar}</td>
-                <td>{res.birim}</td>
-                <td>{res.birim_fiyat}</td>
-                <td style="font-weight: bold;">{res.toplam_tutar:.2f}</td>
-            </tr>
-        """
-        
-    html_content += f"""
-            </tbody>
-            <tfoot>
-                <tr style="font-weight: bold; background-color: #eee;">
-                    <td colspan="10" style="text-align: right; padding: 10px;">Genel Rapor Toplamı:</td>
-                    <td style="text-align: center; padding: 10px;">{toplam_genel:.2f} ₺</td>
-                </tr>
-            </tfoot>
-        </table>
 
-        <div class="footer">
-            <p>Oluşturma Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}</p>
-        </div>
-    </body>
-    </html>
-    """
-
-    options = {
-        'encoding': 'UTF-8',
-        'quiet': '',
-        'orientation': 'Landscape',
-        'margin-top': '0.5in',
-        'margin-right': '0.5in',
-        'margin-bottom': '0.5in',
-        'margin-left': '0.5in',
-    }
-
-    try:
-        pdf_config = get_pdf_config(current_app)
-        pdf_bytes = pdfkit.from_string(html_content, False, options=options, configuration=pdf_config)
-        output = io.BytesIO(pdf_bytes)
-        dosya_adi = f"WoodERP_Rapor_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
-        
-        return send_file(
-            output,
-            mimetype="application/pdf",
-            as_attachment=True,
-            download_name=dosya_adi
-        )
-    except Exception as e:
-        flash(f"PDF oluşturulurken hata oluştu: {str(e)}", "danger")
-        return redirect(url_for("raporlar.raporlar"))
+    return render_template(
+        "pdf/rapor_pdf.html",
+        sonuclar=islenmis_sonuclar,
+        baslangic=baslangic,
+        bitis=bitis,
+        cari_isim=cari_isim,
+        fabrika_isim=fabrika_isim,
+        toplam_genel=toplam_genel,
+        datetime=datetime
+    )

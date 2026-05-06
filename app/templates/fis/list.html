@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 
 {% block content %}
 <!-- ─── Page Header ─── -->
@@ -51,7 +51,7 @@
                             </button>
                             <ul class="dropdown-menu shadow-sm border-0">
                                 <li><a class="dropdown-item" href="{{ url_for('fis.tek_fis_excel', fis_id=fis.id) }}"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel Olarak</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('fis.tek_fis_pdf', fis_id=fis.id) }}"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="indirFisPDFJS(event, '{{ url_for('fis.tek_fis_pdf', fis_id=fis.id) }}', 'Fis_{{ fis.id }}_{{ fis.guncel_sevk_eden_cari | replace(' ', '_') }}')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</a></li>
                             </ul>
                         </div>
                         <button type="button"
@@ -130,7 +130,7 @@
                         </button>
                         <ul class="dropdown-menu w-100 shadow-sm border-0 mt-1">
                             <li><a class="dropdown-item py-2" href="{{ url_for('fis.tek_fis_excel', fis_id=fis.id) }}"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel Olarak</a></li>
-                            <li><a class="dropdown-item py-2" href="{{ url_for('fis.tek_fis_pdf', fis_id=fis.id) }}"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</a></li>
+                            <li><a class="dropdown-item py-2" href="#" onclick="indirFisPDFJS(event, '{{ url_for('fis.tek_fis_pdf', fis_id=fis.id) }}', 'Fis_{{ fis.id }}_{{ fis.guncel_sevk_eden_cari | replace(' ', '_') }}')"><i class="bi bi-filetype-pdf me-2 text-danger"></i>PDF Olarak</a></li>
                         </ul>
                     </div>
                     <button type="button"
@@ -187,9 +187,13 @@
         </div>
     </div>
 </div>
+
+<!-- PDF Render Alanı (Ekran dışı - html2canvas ölçebilsin) -->
+<div id="pdf-render-area" style="position:fixed; left:-9999px; top:0; width:800px; background:white;"></div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
     document.getElementById('silModal').addEventListener('show.bs.modal', function (e) {
         const btn = e.relatedTarget;
@@ -283,6 +287,43 @@
 
         // DOM'u güncelle
         cards.forEach(card => container.appendChild(card));
+    }
+    // ─── Tek Fiş PDF İndirme (Client-Side) ───
+    async function indirFisPDFJS(event, url, fileName) {
+        if (event) event.preventDefault();
+        const btn = event.target.closest('a') || event.target;
+        const originalHtml = btn.innerHTML;
+        
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Hazırlanıyor...';
+        btn.style.pointerEvents = 'none';
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Sunucu hatası");
+            
+            const html = await response.text();
+            const container = document.getElementById('pdf-render-area');
+            container.innerHTML = html;
+            
+            const element = container.querySelector('#fis-pdf-container') || container;
+
+            const opt = {
+                margin: 0.5,
+                filename: fileName + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 3 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            await html2pdf().set(opt).from(element).save();
+            container.innerHTML = '';
+        } catch (error) {
+            console.error(error);
+            alert("PDF indirilirken bir hata oluştu.");
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.style.pointerEvents = 'auto';
+        }
     }
 </script>
 {% endblock %}

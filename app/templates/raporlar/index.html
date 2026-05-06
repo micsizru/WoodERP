@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -217,9 +217,13 @@
         </div>
     </div>
 </div>
+
+<!-- PDF Render Alanı (Ekran dışı - html2canvas ölçebilsin) -->
+<div id="pdf-render-area" style="position:fixed; left:-9999px; top:0; width:1100px; background:white;"></div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <script>
     const RAPOR_INDIR_URL = "{{ url_for('raporlar.rapor_indir') }}";
@@ -264,6 +268,7 @@
 
     function raporHizliIndir(filtre, format = 'excel') {
         const e = window.event;
+        if (e) e.preventDefault();
         const btn = e ? e.target.closest('button') : null;
 
         // RAM Darboğazı Koruması: Tarih alanları boşsa ve tüm zamanlar isteniyorsa uyar
@@ -286,12 +291,13 @@
         if (format === 'excel') {
             indirExcelJS(url, btn);
         } else {
-            window.location.href = url;
+            indirPDFJS(url, btn);
         }
     }
 
     function raporIndir(tip, format = 'excel') {
         const e = window.event;
+        if (e) e.preventDefault();
         const btn = e ? e.target.closest('button') : null;
 
         // RAM Darboğazı Koruması: 'tumu' veya 'ozel' (boş bırakılmışsa) durumunda onayla
@@ -340,7 +346,50 @@
         if (format === 'excel') {
             indirExcelJS(url, btn);
         } else {
-            window.location.href = url;
+            indirPDFJS(url, btn);
+        }
+    }
+
+    async function indirPDFJS(url, btn) {
+        let originalHtml = '';
+        if (btn) {
+            originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>PDF Hazırlanıyor...';
+            btn.disabled = true;
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Sunucu hatası: " + response.status);
+            
+            const html = await response.text();
+            const container = document.getElementById('pdf-render-area');
+            container.innerHTML = html;
+            
+            // Raporun içindeki ana tablo kapsayıcısını bul
+            const element = container.querySelector('#rapor-pdf-container') || container;
+
+            var opt = {
+                margin: 0.5,
+                filename: 'WoodERP_Rapor.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 3 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+                pagebreak: { mode: ['css', 'legacy'] }
+            };
+
+            await html2pdf().set(opt).from(element).save();
+            
+            // Temizlik
+            container.innerHTML = '';
+        } catch (error) {
+            console.error('Hata:', error);
+            alert("PDF oluşturulurken bir hata meydana geldi. Lütfen tekrar deneyin.");
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
         }
     }
 

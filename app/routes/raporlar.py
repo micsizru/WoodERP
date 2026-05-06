@@ -106,9 +106,9 @@ def rapor_indir():
         json_data.append({
             "Fiş No": r[0],
             "Tarih": r[1].strftime("%d.%m.%Y") if hasattr(r[1], 'strftime') else r[1],
+            "Sevkiyat Fiş No": r[6],
             "Sevk Eden Cari": cariler_dict.get(r[3], r[2]),
             "Fabrika": fabrikalar_dict.get(r[5], r[4]),
-            "Sevkiyat Fiş No": r[6],
             "Plaka No": r[7],
             "Ağaç Cinsi": r[8],
             "Çap": r[9],

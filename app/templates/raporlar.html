@@ -213,7 +213,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -221,7 +220,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <script>
     const RAPOR_INDIR_URL = "{{ url_for('raporlar.rapor_indir') }}";
     const RAPOR_INDIR_PDF_URL = "{{ url_for('raporlar.rapor_indir_pdf') }}";
@@ -345,7 +344,7 @@
         }
     }
 
-    function indirExcelJS(url, btn) {
+    async function indirExcelJS(url, btn) {
         let originalHtml = '';
         if (btn) {
             originalHtml = btn.innerHTML;
@@ -353,40 +352,133 @@
             btn.disabled = true;
         }
 
-        fetch(url)
-            .then(response => {
-                if (!response.ok) throw new Error("Sunucu hatası: " + response.status);
-                return response.json();
-            })
-            .then(result => {
-                const data = result.data;
-                const fileName = result.filename || "Rapor.xlsx";
-                
-                if (!data || data.length === 0) {
-                    alert("Seçili kriterlere uygun veri bulunamadı.");
-                    return;
-                }
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Sunucu hatası: " + response.status);
+            
+            const result = await response.json();
+            const data = result.data;
+            const fileName = result.filename || "Rapor.xlsx";
 
-                const worksheet = XLSX.utils.json_to_sheet(data);
-                
-                const cols = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length + 2, 12) }));
-                worksheet['!cols'] = cols;
+            if (!data || data.length === 0) {
+                alert("Seçili kriterlere uygun veri bulunamadı.");
+                return;
+            }
 
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Sevkiyat Raporu");
-                
-                XLSX.writeFile(workbook, fileName);
-            })
-            .catch(error => {
-                console.error('Hata:', error);
-                alert("Excel dosyası oluşturulurken bir hata meydana geldi. Lütfen tekrar deneyin.");
-            })
-            .finally(() => {
-                if (btn) {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Sevkiyat Raporu', {
+                views: [{ state: 'frozen', ySplit: 1 }]
+            });
+
+            // Sütun Tanımları ve Başlıklar
+            const columns = [
+                { header: "Fiş No", key: "Fiş No" },
+                { header: "Tarih", key: "Tarih" },
+                { header: "Sevkiyat Fiş No", key: "Sevkiyat Fiş No" },
+                { header: "Sevk Eden Cari", key: "Sevk Eden Cari" },
+                { header: "Fabrika", key: "Fabrika" },
+                { header: "Plaka No", key: "Plaka No" },
+                { header: "Ağaç Cinsi", key: "Ağaç Cinsi" },
+                { header: "Çap", key: "Çap" },
+                { header: "Miktar", key: "Miktar" },
+                { header: "Birim", key: "Birim" },
+                { header: "Birim Fiyat", key: "Birim Fiyat" },
+                { header: "Toplam Tutar", key: "Toplam Tutar" }
+            ];
+            worksheet.columns = columns;
+
+            // Verileri Ekle
+            worksheet.addRows(data);
+
+            // Başlık Satırı Stilize Etme
+            const headerRow = worksheet.getRow(1);
+            headerRow.height = 25;
+            headerRow.eachCell((cell) => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF1B5E20' }
+                };
+                cell.font = {
+                    bold: true,
+                    color: { argb: 'FFFFFFFF' },
+                    size: 11
+                };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+
+            // Veri Satırlarını Stilize Etme (Zebra ve Kenarlık)
+            worksheet.eachRow((row, rowNumber) => {
+                if (rowNumber > 1) {
+                    const isEven = rowNumber % 2 === 0;
+                    row.eachCell((cell) => {
+                        if (isEven) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFF5F5F0' }
+                            };
+                        }
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FFDDDDDD' } },
+                            left: { style: 'thin', color: { argb: 'FFDDDDDD' } },
+                            bottom: { style: 'thin', color: { argb: 'FFDDDDDD' } },
+                            right: { style: 'thin', color: { argb: 'FFDDDDDD' } }
+                        };
+                        // Sayısal değerleri formatla
+                        if (typeof cell.value === 'number') {
+                            cell.numFmt = '#,##0.00';
+                        }
+                    });
                 }
             });
+
+            // Filtreleme Ekle
+            worksheet.autoFilter = {
+                from: { row: 1, column: 1 },
+                to: { row: 1, column: columns.length }
+            };
+
+            // Otomatik Sütun Genişliği Hesaplama
+            worksheet.columns.forEach(column => {
+                let maxLength = column.header.length + 5;
+                column.eachCell({ includeEmpty: true }, cell => {
+                    const columnLength = cell.value ? cell.value.toString().length + 2 : 10;
+                    if (columnLength > maxLength) {
+                        maxLength = columnLength;
+                    }
+                });
+                column.width = Math.min(maxLength, 40);
+            });
+
+            // Dosyayı Oluştur ve İndir
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(downloadUrl);
+
+        } catch (error) {
+            console.error('Hata:', error);
+            alert("Excel dosyası oluşturulurken bir hata meydana geldi. Lütfen tekrar deneyin.");
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
     }
 
     function haftalariGuncelle() {

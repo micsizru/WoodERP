@@ -4,6 +4,14 @@ from dateutil.relativedelta import relativedelta
 import pytz
 import os
 
+#Burada tarih aralığı hesaplama fonksiyonu
+
+#İstanbul saatini alma fonksiyonu
+
+#Ve ne alaka anlamadım ama cari/fabrika kartı oluştururken
+#bunlara unique id vermeyi sağlayan kod var
+
+
 def tarih_araligi_hesapla(filtre, baslangic_str=None, bitis_str=None):
     bugun = date.today()
 

@@ -53,7 +53,9 @@ WoodERP/
 └── migrations/           # DB versiyon kontrolü (Alembic)
 ```
 
-## 🚀 Çalıştırma / Запуск
+## 🚀 Kurulum ve Çalıştırma / Установка и запуск
 1. `pip install -r requirements.txt`
-2. `flask db upgrade`
-3. `python app.py`
+2. `python app.py`
+
+*(TR: İlk çalıştırmada `veritabani.db` veritabanı dosyası tablolarıyla birlikte otomatik olarak oluşturulacaktır. Ekstra bir veritabanı komutuna gerek yoktur.)*
+*(RU: При первом запуске файл базы данных `veritabani.db` вместе с таблицами будет создан автоматически. Дополнительные команды для базы данных не требуются.)*

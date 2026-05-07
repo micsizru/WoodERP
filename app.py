@@ -53,6 +53,21 @@ if __name__ == "__main__":
         from app import create_app
         app = create_app()
 
+        # --- AUTO-INIT DATABASE ---
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "veritabani.db")
+        if not os.path.exists(db_path):
+            print("[*] Veritabani bulunamadi, otomatik kurulum baslatiliyor...")
+            from app.extensions import db
+            with app.app_context():
+                db.create_all()
+                try:
+                    from flask_migrate import stamp
+                    stamp()
+                    print("[+] Tablolar basariyla olusturuldu ve migration bilesenleri ayarlandi.")
+                except Exception as e:
+                    print(f"[-] Tablolar olusturuldu ancak migration damgasi (stamp) atilamadi: {e}")
+        # --------------------------
+
         print("\n" + "=" * 50)
         print("   WoodERP - Modern Kereste Yonetim Sistemi")
         print("=" * 50)

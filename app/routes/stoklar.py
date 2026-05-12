@@ -2,6 +2,7 @@ import logging
 from datetime import date, datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.models import MevcutStok, GelecekStok, StokBildirim, Cari, Fis
 from app.constants import AGAC_CINSLERI, BIRIMLER
@@ -48,16 +49,24 @@ def stoklar():
     bugun = date.today()
     StokService.process_future_stocks()
 
-    bekleyenler = StokBildirim.query.outerjoin(Fis, StokBildirim.fis_id == Fis.id).filter(
+    bekleyenler = StokBildirim.query.options(
+        joinedload(StokBildirim.cari)
+    ).outerjoin(Fis, StokBildirim.fis_id == Fis.id).filter(
         StokBildirim.durum == 'bekliyor',
         db.or_(StokBildirim.fis_id == None, Fis.tarih <= bugun)
     ).order_by(StokBildirim.id.desc()).all()
     
-    mevcut_stoklar = MevcutStok.query.outerjoin(Cari).order_by(Cari.firma_adi, MevcutStok.kalem).all()
-    gelecek_stoklar = GelecekStok.query.order_by(GelecekStok.teslim_tarihi.asc()).all()
+    mevcut_stoklar = MevcutStok.query.options(
+        joinedload(MevcutStok.cari)
+    ).outerjoin(Cari).order_by(Cari.firma_adi, MevcutStok.kalem).all()
+    gelecek_stoklar = GelecekStok.query.options(
+        joinedload(GelecekStok.cari)
+    ).order_by(GelecekStok.teslim_tarihi.asc()).all()
     cariler = Cari.query.filter_by(aktif_mi=True).order_by(Cari.firma_adi).all()
     
-    reddedilenler = StokBildirim.query.outerjoin(Fis, StokBildirim.fis_id == Fis.id).filter(
+    reddedilenler = StokBildirim.query.options(
+        joinedload(StokBildirim.cari)
+    ).outerjoin(Fis, StokBildirim.fis_id == Fis.id).filter(
         StokBildirim.durum == 'reddedildi',
         db.or_(StokBildirim.fis_id == None, Fis.tarih <= bugun)
     ).all()

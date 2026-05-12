@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from flask import Blueprint, render_template
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.models import Fis, FisDetayi, StokBildirim
 
@@ -26,6 +27,8 @@ def inject_bekleyen_bildirim():
 def index():
     toplam_fis = Fis.query.count()
     toplam_kalem = FisDetayi.query.count()
-    son_fisler = Fis.query.order_by(Fis.tarih.desc(), Fis.id.desc()).limit(5).all()
+    son_fisler = Fis.query.options(
+        joinedload(Fis.cari)
+    ).order_by(Fis.tarih.desc(), Fis.id.desc()).limit(5).all()
     return render_template("home/index.html", toplam_fis=toplam_fis,
                            toplam_kalem=toplam_kalem, son_fisler=son_fisler)

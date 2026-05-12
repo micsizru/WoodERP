@@ -2,6 +2,7 @@ import logging
 from datetime import date, datetime
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.models import Fis, Cari, Fabrika
 from app.constants import AGAC_CINSLERI, CAPLER, BIRIMLER
@@ -47,12 +48,20 @@ def yeni_fis_kaydet():
 
 @fis_bp.route("/fisleri_goruntule")
 def fisleri_goruntule():
-    fisler = Fis.query.order_by(Fis.tarih.desc(), Fis.id.desc()).all()
+    fisler = Fis.query.options(
+        joinedload(Fis.cari),
+        joinedload(Fis.fabrika),
+        joinedload(Fis.detaylar)
+    ).order_by(Fis.tarih.desc(), Fis.id.desc()).all()
     return render_template("fis/list.html", fisler=fisler)
 
 @fis_bp.route("/fis_detay/<int:fis_id>")
 def fis_detay(fis_id):
-    fis = Fis.query.get_or_404(fis_id)
+    fis = Fis.query.options(
+        joinedload(Fis.cari),
+        joinedload(Fis.fabrika),
+        joinedload(Fis.detaylar)
+    ).get_or_404(fis_id)
     genel_toplam = sum(d.toplam_tutar for d in fis.detaylar)
     return render_template("fis/detail.html", fis=fis, genel_toplam=genel_toplam)
 
@@ -82,7 +91,11 @@ def fis_duzenle(fis_id):
             logging.critical(f"Bilinmeyen kritik hata (Fiş Düzenle {fis_id}):", exc_info=True)
             return jsonify({"durum": "hata", "mesaj": "Sistemde beklenmeyen bir hata oluştu."}), 500
 
-    fis = Fis.query.get_or_404(fis_id)
+    fis = Fis.query.options(
+        joinedload(Fis.cari),
+        joinedload(Fis.fabrika),
+        joinedload(Fis.detaylar)
+    ).get_or_404(fis_id)
 
     cariler = Cari.query.filter(db.or_(Cari.aktif_mi == True, Cari.firma_kodu == fis.cari_kodu)).order_by(Cari.firma_adi).all()
     fabrikalar = Fabrika.query.filter(db.or_(Fabrika.aktif_mi == True, Fabrika.firma_kodu == fis.fabrika_kodu)).order_by(Fabrika.firma_adi).all()
@@ -112,7 +125,11 @@ def fis_duzenle(fis_id):
 
 @fis_bp.route("/tek_fis_excel/<int:fis_id>")
 def tek_fis_excel(fis_id):
-    fis = Fis.query.get_or_404(fis_id)
+    fis = Fis.query.options(
+        joinedload(Fis.cari),
+        joinedload(Fis.fabrika),
+        joinedload(Fis.detaylar)
+    ).get_or_404(fis_id)
     
     veriler = []
     for d in fis.detaylar:
@@ -138,6 +155,10 @@ def tek_fis_excel(fis_id):
 
 @fis_bp.route("/tek_fis_pdf/<int:fis_id>")
 def tek_fis_pdf(fis_id):
-    fis = Fis.query.get_or_404(fis_id)
+    fis = Fis.query.options(
+        joinedload(Fis.cari),
+        joinedload(Fis.fabrika),
+        joinedload(Fis.detaylar)
+    ).get_or_404(fis_id)
     genel_toplam = sum(d.toplam_tutar for d in fis.detaylar)
     return render_template("pdf/fis_pdf.html", fis=fis, genel_toplam=genel_toplam, datetime=datetime)

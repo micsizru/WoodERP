@@ -1,20 +1,17 @@
-*.db
-veritabani.db
+# python ve ortam / python and environment / питон и окружение
 __pycache__/
 venv/
-.vscode/
+
+# veritabani ve cevre degiskenleri / database and environment variables / база данных и переменные окружения
+*.db
+veritabani.db
 .env
+
+# editor ayarlari / editor settings / настройки редактора
+.vscode/
 pyrightconfig.json
-.duzeltilmesi-gerekenler.txt
-.sustainability.txt
-sustainability.txt
-sustainability_old_26_04_2026.txt
-.run.py
-fix_sqlite.py
-baslat.bat
+
+# eski - kullanilmayan dizinler / old - unused directories / старые - неиспользуемые каталоги
 .deprecated_monolith/
-agent.md
-structure.txt
 .agents/
 scratch
-after-credits.txt

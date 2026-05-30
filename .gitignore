@@ -2,16 +2,16 @@
 __pycache__/
 venv/
 
-# veritabani ve cevre degiskenleri / database and environment variables / база данных и переменные окружения
+# veritabanı ve çevre değişkenleri / database and environment variables / база данных и переменные окружения
 *.db
 veritabani.db
 .env
 
-# editor ayarlari / editor settings / настройки редактора
+# editor ayarları / editor settings / настройки редактора
 .vscode/
 pyrightconfig.json
 
-# eski - kullanilmayan dizinler / old - unused directories / старые - неиспользуемые каталоги
+# eski - kullanılmayan dizinler / old - unused directories / старые - неиспользуемые каталоги
 .deprecated_monolith/
 .agents/
 scratch
